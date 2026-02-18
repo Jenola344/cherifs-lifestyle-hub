@@ -42,7 +42,7 @@ export default function AboutPage() {
                     <h2>Ready to transform your space?</h2>
                     <p>Book a consultation with our design concierge today.</p>
                     <div className={styles.btnGroup}>
-                        <a href={process.env.NEXT_PUBLIC_CALENDLY_LINK || "#"} target="_blank" className={styles.primaryBtn}>Book 30min Discovery Call</a>
+                        <a href={process.env.NEXT_PUBLIC_CALENDLY_LINK || "https://calendly.com/cheriflifestyle1/30min"} target="_blank" className={styles.primaryBtn}>Book 30min Discovery Call</a>
                     </div>
                 </Reveal>
             </section>

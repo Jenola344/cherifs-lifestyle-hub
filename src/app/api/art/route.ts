@@ -3,11 +3,15 @@ import fs from 'fs/promises';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { readData, writeData } from '@/lib/db';
+import { artCollection } from '@/lib/data';
 
 const uploadDir = path.join(process.cwd(), 'public', 'uploads');
 
 export async function GET() {
-    const art = await readData('art.json');
+    let art = await readData('art.json');
+    if (art.length === 0) {
+        art = artCollection; // Use static fallback if empty
+    }
     return NextResponse.json(art);
 }
 

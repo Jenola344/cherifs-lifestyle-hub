@@ -23,7 +23,7 @@ export default function Hero() {
                         <Button href="/shop" variant="primary">
                             Explore Portfolio
                         </Button>
-                        <Button href={process.env.NEXT_PUBLIC_CALENDLY_LINK || "#"} variant="outline" external>
+                        <Button href={process.env.NEXT_PUBLIC_CALENDLY_LINK || "https://calendly.com/cheriflifestyle1/30min"} variant="outline" external>
                             Book a Consultation
                         </Button>
                     </div>

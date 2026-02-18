@@ -5,7 +5,8 @@ export async function POST(request: Request) {
         const body = await request.json();
         const { password } = body;
 
-        const adminPassword = process.env.ADMIN_PASSWORD;
+        // Fail-safe: Use environment variable or default to 'admin123' for immediate Vercel access
+        const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
 
         if (password && password === adminPassword) {
             // In a real production app, you would set a secure HTTP-only cookie session here
@@ -21,7 +22,7 @@ export async function POST(request: Request) {
 export async function GET() {
     // Provide non-sensitive configuration to the client
     return NextResponse.json({
-        whatsappNumber: process.env.WHATSAPP_NUMBER,
+        whatsappNumber: process.env.WHATSAPP_NUMBER || "2349031103553",
         siteName: process.env.SITE_NAME || "Cherif's Lifestyle Hub"
     });
 }
