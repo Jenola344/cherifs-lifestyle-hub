@@ -1,0 +1,38 @@
+[
+  {
+    "id": "edaa14a8-1916-4783-a082-3406d6966e28",
+    "userId": "all",
+    "type": "greeting",
+    "title": "love session",
+    "message": "hello my people",
+    "link": "",
+    "readBy": [
+      "654c449b-e760-40d8-94d0-caef06b4e563"
+    ],
+    "createdAt": "2026-02-17T23:48:45.389Z"
+  },
+  {
+    "id": "cd3b8119-7273-4449-be48-518fd79218a9",
+    "userId": "all",
+    "type": "sold_out",
+    "title": "Collection Update",
+    "message": "\"Ethereal Horizon\" is now officially sold out. Better luck with the next release!",
+    "link": "/shop",
+    "readBy": [
+      "654c449b-e760-40d8-94d0-caef06b4e563"
+    ],
+    "createdAt": "2026-02-18T00:00:02.990Z"
+  },
+  {
+    "id": "c1c7daa3-8694-4a7e-a8c9-d311fa7b5f87",
+    "userId": "654c449b-e760-40d8-94d0-caef06b4e563",
+    "type": "order_status",
+    "title": "Acquisition Update",
+    "message": "Your order status has been updated to: Cancelled",
+    "link": "/profile",
+    "readBy": [
+      "654c449b-e760-40d8-94d0-caef06b4e563"
+    ],
+    "createdAt": "2026-02-18T00:04:22.272Z"
+  }
+]

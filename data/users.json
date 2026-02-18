@@ -1,0 +1,13 @@
+[
+  {
+    "id": "654c449b-e760-40d8-94d0-caef06b4e563",
+    "name": "oluse",
+    "email": "jesutolaolusegun@gmail.com",
+    "password": "jesutola01",
+    "createdAt": "2026-02-17T02:16:44.701Z",
+    "favorites": [
+      "art-1",
+      "art-2"
+    ]
+  }
+]

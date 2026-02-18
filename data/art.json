@@ -1,0 +1,88 @@
+[
+  {
+    "id": "art-1",
+    "title": "Ethereal Horizon",
+    "artist": "Elena Rossi",
+    "image": "/uploads/1771347864056-Computer_Mock.jpg",
+    "category": "Painting",
+    "price": 1200,
+    "sizes": [
+      "18x24",
+      "24x36",
+      "30x40"
+    ],
+    "description": "Oil on canvas, capturing the serene morning light.",
+    "status": "sold out"
+  },
+  {
+    "id": "art-2",
+    "title": "Urban Fragments",
+    "artist": "Marcus Chen",
+    "image": "https://images.unsplash.com/photo-1541701494587-cb58502866ab?q=80&w=800",
+    "category": "Mixed Media",
+    "price": 850,
+    "sizes": [
+      "20x20",
+      "30x30",
+      "40x40"
+    ],
+    "description": "A structural exploration of city life using reclaimed materials.",
+    "status": "available"
+  },
+  {
+    "id": "art-3",
+    "title": "Velvet Noir",
+    "artist": "Sarah Jenkins",
+    "image": "https://images.unsplash.com/photo-1554188248-986adbb73be4?q=80&w=800",
+    "category": "Photography",
+    "price": 450,
+    "sizes": [
+      "12x18",
+      "20x30",
+      "24x36"
+    ],
+    "description": "Limited edition print of deep shadows and textures.",
+    "status": "available"
+  },
+  {
+    "id": "art-4",
+    "title": "Ceramic Void",
+    "artist": "David Kim",
+    "image": "https://images.unsplash.com/photo-1578301978018-3005759f48f7?q=80&w=800",
+    "category": "Sculpture",
+    "price": 320,
+    "sizes": [
+      "Small",
+      "Medium",
+      "Large"
+    ],
+    "description": "Hand-thrown ceramic vessel with matte black glaze.",
+    "status": "available"
+  },
+  {
+    "id": "a2761ebb-07f4-4931-a2b4-7ae94c62979a",
+    "title": "jennny",
+    "artist": "hen",
+    "price": 32,
+    "category": "love",
+    "sizes": [
+      "18x4"
+    ],
+    "description": "love filled",
+    "image": "/uploads/1771347922171-Computer_Mock.jpg",
+    "status": "available"
+  },
+  {
+    "id": "f302a371-5c37-4088-b0b9-5d2ffba593f8",
+    "title": "jenola",
+    "artist": "jenny",
+    "price": 7000,
+    "category": "jog",
+    "sizes": [
+      "50x40"
+    ],
+    "description": "lovely",
+    "image": "/uploads/1771373697932-ChatGPT_Image_Feb_8__2026__02_52_12_PM.png",
+    "status": "available"
+  }
+]

@@ -1,0 +1,130 @@
+[
+  {
+    "id": "ed05514b-fb83-475a-a842-616b514116f8",
+    "customerName": "jenola",
+    "items": [
+      {
+        "id": "art-3",
+        "title": "Velvet Noir",
+        "image": "https://images.unsplash.com/photo-1554188248-986adbb73be4?q=80&w=800",
+        "price": 450,
+        "category": "Photography",
+        "quantity": 1
+      }
+    ],
+    "totalPrice": 450,
+    "platform": "web-whatsapp",
+    "status": "Completed",
+    "createdAt": "2026-02-17T00:02:39.312Z"
+  },
+  {
+    "id": "9e8a64e8-ebe0-430a-b7cc-68a25a244f82",
+    "customerName": "oluse",
+    "userEmail": "jesutolaolusegun@gmail.com",
+    "items": [
+      {
+        "id": "art-4",
+        "title": "Ceramic Void",
+        "image": "https://images.unsplash.com/photo-1578301978018-3005759f48f7?q=80&w=800",
+        "price": 320,
+        "category": "Sculpture",
+        "quantity": 1,
+        "size": "Small",
+        "frame": "Frameless",
+        "cartId": "art-4-Small-Frameless"
+      }
+    ],
+    "totalPrice": 320,
+    "platform": "web-whatsapp",
+    "status": "Cancelled",
+    "createdAt": "2026-02-17T02:47:54.484Z"
+  },
+  {
+    "id": "95dbb1b2-6426-4c92-9bbd-e4f75041069a",
+    "customerName": "jrrrrr",
+    "userEmail": "Guest",
+    "items": [
+      {
+        "id": "art-1",
+        "title": "Ethereal Horizon",
+        "image": "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?q=80&w=800",
+        "price": 1200,
+        "category": "Painting",
+        "quantity": 1,
+        "size": "18x24",
+        "frame": "Frameless",
+        "cartId": "art-1-18x24-Frameless"
+      }
+    ],
+    "totalPrice": 1200,
+    "platform": "web-whatsapp",
+    "status": "Cancelled",
+    "createdAt": "2026-02-17T15:29:46.809Z"
+  },
+  {
+    "id": "990ff0c1-58fc-4ad2-b1e8-8ca08d752498",
+    "customerName": "oluse",
+    "userEmail": "jesutolaolusegun@gmail.com",
+    "items": [
+      {
+        "id": "art-1",
+        "title": "Ethereal Horizon",
+        "image": "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?q=80&w=800",
+        "price": 1200,
+        "category": "Painting",
+        "quantity": 1,
+        "size": "18x24",
+        "frame": "Frameless",
+        "cartId": "art-1-18x24-Frameless"
+      }
+    ],
+    "totalPrice": 1200,
+    "platform": "web-whatsapp",
+    "status": "Cancelled",
+    "createdAt": "2026-02-17T16:33:54.708Z"
+  },
+  {
+    "id": "603f0dac-5834-4d30-ac75-e37e2ff08391",
+    "customerName": "oluse",
+    "userEmail": "jesutolaolusegun@gmail.com",
+    "items": [
+      {
+        "id": "art-4",
+        "title": "Ceramic Void",
+        "image": "https://images.unsplash.com/photo-1578301978018-3005759f48f7?q=80&w=800",
+        "price": 320,
+        "category": "Sculpture",
+        "quantity": 1,
+        "size": "Small",
+        "frame": "Frameless",
+        "cartId": "art-4-Small-Frameless"
+      },
+      {
+        "id": "art-4",
+        "title": "Ceramic Void",
+        "image": "https://images.unsplash.com/photo-1578301978018-3005759f48f7?q=80&w=800",
+        "price": 320,
+        "category": "Sculpture",
+        "quantity": 1,
+        "size": "Large",
+        "frame": "Framed",
+        "cartId": "art-4-Large-Framed"
+      },
+      {
+        "id": "art-2",
+        "title": "Urban Fragments",
+        "image": "https://images.unsplash.com/photo-1541701494587-cb58502866ab?q=80&w=800",
+        "price": 850,
+        "category": "Mixed Media",
+        "quantity": 1,
+        "size": "20x20",
+        "frame": "Frameless",
+        "cartId": "art-2-20x20-Frameless"
+      }
+    ],
+    "totalPrice": 1640,
+    "platform": "web-whatsapp",
+    "status": "Cancelled",
+    "createdAt": "2026-02-18T00:02:47.901Z"
+  }
+]
