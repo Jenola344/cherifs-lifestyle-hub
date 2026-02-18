@@ -1,0 +1,101 @@
+.footer {
+    background-color: var(--color-black);
+    color: var(--color-white);
+    padding: 6rem 0 2rem;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+}
+
+@media (max-width: 768px) {
+    .grid {
+        grid-template-columns: 1fr;
+        gap: 3rem;
+    }
+}
+
+.faqSection {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 3rem;
+    border-radius: var(--radius-sm);
+}
+
+.faqList {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.faqItem {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 1rem;
+}
+
+.faqQuestion {
+    font-size: 1.1rem;
+    font-family: var(--font-heading);
+    margin-bottom: 0.5rem;
+    color: white;
+}
+
+.faqAnswer {
+    color: #888;
+    line-height: 1.6;
+    font-size: 0.95rem;
+}
+
+.heading {
+    font-family: var(--font-heading);
+    font-size: 2rem;
+    margin-bottom: 2rem;
+    color: white;
+}
+
+
+.infoSection {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.branding {
+    font-family: var(--font-heading);
+    font-size: 2rem;
+    margin-bottom: 2rem;
+}
+
+.contactDetails {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 3rem;
+}
+
+.contactItem {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    color: #ccc;
+    font-size: 1rem;
+}
+
+.contactItem a:hover {
+    color: white;
+    text-decoration: underline;
+}
+
+.copyright {
+    font-size: 0.8rem;
+    color: #666;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 2rem;
+}

@@ -1,0 +1,122 @@
+.main {
+    background-color: var(--color-white);
+}
+
+.hero {
+    height: 60vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    background-color: var(--color-ivory);
+    padding: 0 1.5rem;
+}
+
+.title {
+    font-family: var(--font-heading);
+    font-size: 5rem;
+    margin-bottom: 1rem;
+}
+
+.subtitle {
+    font-size: 1.25rem;
+    color: #666;
+}
+
+.philosophy {
+    padding: 10rem 0;
+    background-color: #fafafa;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+.phiGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8rem;
+    align-items: center;
+}
+
+@media (max-width: 900px) {
+    .phiGrid {
+        grid-template-columns: 1fr;
+        gap: 4rem;
+    }
+}
+
+.phiContent h2 {
+    font-family: var(--font-heading);
+    font-size: 3rem;
+    margin: 1.5rem 0 2.5rem;
+}
+
+.phiContent p {
+    line-height: 1.8;
+    color: #555;
+    margin-bottom: 1.5rem;
+    font-size: 1.1rem;
+}
+
+.label {
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-size: 0.85rem;
+    color: #aaa;
+}
+
+.phiImage div {
+    height: 600px;
+    border-radius: var(--radius-sm);
+    background-size: cover;
+    background-position: center;
+}
+
+.cta {
+    padding: 10rem 0;
+    text-align: center;
+    background: var(--color-black);
+    color: white;
+}
+
+.cta h2 {
+    font-family: var(--font-heading);
+    font-size: 3.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.cta p {
+    font-size: 1.2rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 3rem;
+}
+
+.primaryBtn {
+    background: white;
+    color: black;
+    padding: 1.25rem 2.5rem;
+    border-radius: 4px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: inline-block;
+    transition: opacity 0.2s;
+}
+
+.primaryBtn:hover {
+    opacity: 0.9;
+}
+
+@media (max-width: 600px) {
+    .title {
+        font-size: 3rem;
+    }
+
+    .cta h2 {
+        font-size: 2.5rem;
+    }
+}

@@ -1,0 +1,119 @@
+.main {
+    min-height: 100vh;
+    padding: 10rem 0;
+    background-color: var(--color-white);
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+.title {
+    font-family: var(--font-heading);
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.subtitle {
+    text-align: center;
+    color: #666;
+    margin-bottom: 6rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 6rem;
+}
+
+@media (max-width: 1000px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.form {
+    background: #fdfdfd;
+    padding: 4rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid #f0f0f0;
+}
+
+.row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+@media (max-width: 600px) {
+    .row {
+        grid-template-columns: 1fr;
+    }
+}
+
+.group label {
+    display: block;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    color: #888;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+}
+
+.group input,
+.group textarea,
+.group select {
+    width: 100%;
+    padding: 1.25rem;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    font-family: var(--font-body);
+    background: white;
+}
+
+.submitBtn {
+    margin-top: 3rem;
+    width: 100%;
+    padding: 1.5rem !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.card {
+    background: var(--color-black);
+    color: white;
+    padding: 4rem;
+    border-radius: var(--radius-sm);
+    height: fit-content;
+}
+
+.card h2 {
+    font-family: var(--font-heading);
+    font-size: 2rem;
+    margin-bottom: 3rem;
+}
+
+.contactItem {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+}
+
+.contactItem h3 {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 0.25rem;
+}
+
+.contactItem p {
+    font-size: 1.1rem;
+}
