@@ -9,7 +9,20 @@ export async function GET(request: Request) {
     const notifications = await readData('notifications.json');
 
     // Filter for specific user or broadcast messages
-    const filtered = notifications.filter((n: any) => n.userId === 'all' || n.userId === userId);
+    let filtered = notifications.filter((n: any) => n.userId === 'all' || n.userId === userId);
+
+    // Provide a welcome notification if empty
+    if (filtered.length === 0) {
+        filtered = [{
+            id: 'welcome',
+            userId: 'all',
+            type: 'general',
+            title: 'Welcome to the Hub',
+            message: 'Discover our latest art acquisitions and interior design projects.',
+            link: '/shop',
+            createdAt: new Date().toISOString()
+        }];
+    }
 
     // Sort by newest first
     return NextResponse.json(filtered.sort((a: any, b: any) =>

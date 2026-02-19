@@ -1,6 +1,7 @@
 import styles from './Hero.module.css';
 import Button from '../ui/Button';
 import Reveal from '../ui/Reveal';
+import { APP_CONFIG } from '@/lib/config';
 
 export default function Hero() {
     return (
@@ -23,7 +24,7 @@ export default function Hero() {
                         <Button href="/shop" variant="primary">
                             Explore Portfolio
                         </Button>
-                        <Button href={process.env.NEXT_PUBLIC_CALENDLY_LINK || "https://calendly.com/cheriflifestyle1/30min"} variant="outline" external>
+                        <Button href={process.env.NEXT_PUBLIC_CALENDLY_LINK || APP_CONFIG.calendlyLink} variant="outline" external>
                             Book a Consultation
                         </Button>
                     </div>
