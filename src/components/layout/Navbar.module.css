@@ -37,6 +37,12 @@
     gap: 3rem;
 }
 
+.rightActions {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+}
+
 .navLink {
     font-family: var(--font-body);
     font-size: 0.9rem;
@@ -182,5 +188,41 @@
 
     .mobileToggle {
         display: block;
+    }
+
+    .iconGroup {
+        padding-left: 0;
+        border-left: none;
+        gap: 1.5rem;
+    }
+
+    .rightActions {
+        gap: 1rem;
+    }
+
+    .label {
+        display: none;
+    }
+
+    .logo {
+        font-size: 1.4rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .iconGroup {
+        gap: 1rem;
+    }
+
+    .rightActions {
+        gap: 0.5rem;
+    }
+
+    .logo {
+        font-size: 1.15rem;
+    }
+
+    .container {
+        padding: 0 1rem;
     }
 }

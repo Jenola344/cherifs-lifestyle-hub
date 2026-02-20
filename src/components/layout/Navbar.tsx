@@ -45,7 +45,10 @@ export default function Navbar() {
                         </div>
                     </div>
                     <Link href="/contact" className={styles.navLink}>Contact</Link>
+                </div>
 
+                {/* Right Side Actions (Visible on both desktop and mobile) */}
+                <div className={styles.rightActions}>
                     <div className={styles.iconGroup}>
                         {isAuthenticated ? (
                             <Link href="/profile" className={styles.iconBtn}>
@@ -65,15 +68,15 @@ export default function Navbar() {
 
                         <NotificationCenter />
                     </div>
-                </div>
 
-                {/* Mobile Menu Button */}
-                <button
-                    className={styles.mobileToggle}
-                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                >
-                    {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-                </button>
+                    {/* Mobile Menu Button */}
+                    <button
+                        className={styles.mobileToggle}
+                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                    >
+                        {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                    </button>
+                </div>
             </div>
 
             {/* Mobile Menu Overlay */}
