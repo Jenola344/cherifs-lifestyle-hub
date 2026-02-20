@@ -1,22 +1,20 @@
 import { NextResponse } from 'next/server';
-import fs from 'fs/promises';
-import path from 'path';
-import { v4 as uuidv4 } from 'uuid';
-import { readData, writeData } from '@/lib/db';
-import { artCollection } from '@/lib/data';
-
-const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+import dbConnect from '@/lib/mongoose';
+import Art from '@/models/Art';
 
 export async function GET() {
-    let art = await readData('art.json');
-    if (art.length === 0) {
-        art = artCollection; // Use static fallback if empty
+    try {
+        await dbConnect();
+        const art = await Art.find({}).sort({ createdAt: -1 });
+        return NextResponse.json(art);
+    } catch (error) {
+        return NextResponse.json({ error: 'Failed to fetch art' }, { status: 500 });
     }
-    return NextResponse.json(art);
 }
 
 export async function POST(request: Request) {
     try {
+        await dbConnect();
         const formData = await request.formData();
         const title = formData.get('title') as string;
         const artist = formData.get('artist') as string;
@@ -32,21 +30,16 @@ export async function POST(request: Request) {
         if (imageFile && typeof imageFile !== 'string') {
             const bytes = await imageFile.arrayBuffer();
             const buffer = Buffer.from(bytes);
+            const base64Image = `data:${imageFile.type};base64,${buffer.toString('base64')}`;
 
-            // Sanitize filename
-            const safeName = imageFile.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-            const fileName = `${Date.now()}-${safeName}`;
-
-            const filePath = path.join(uploadDir, fileName);
-            await fs.writeFile(filePath, buffer);
-            imageUrl = `/uploads/${fileName}`;
+            const { uploadToCloudinary } = await import('@/lib/cloudinary');
+            const result: any = await uploadToCloudinary(base64Image, 'art-collection');
+            imageUrl = result.secure_url;
         } else {
             imageUrl = formData.get('imageUrl') as string || '';
         }
 
-        const art = await readData('art.json');
-        const newItem = {
-            id: uuidv4(),
+        const newItem = await Art.create({
             title,
             artist,
             price: Number(price),
@@ -54,24 +47,18 @@ export async function POST(request: Request) {
             description,
             sizes: sizes ? sizes.split(',').map(s => s.trim()) : [],
             image: imageUrl,
-            status // 'available' or 'sold out'
-        };
+            status
+        });
 
-        art.push(newItem);
-        await writeData('art.json', art);
-
-        // Notify Everyone about New Art
+        // Trigger Notification
         try {
-            await fetch(`${request.url.split('/api')[0]}/api/notifications`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    userId: 'all',
-                    type: 'new_art',
-                    title: 'New Masterpiece Acquired',
-                    message: `"${title}" by ${artist} has just been added to the collection.`,
-                    link: '/shop'
-                })
+            const Notification = (await import('@/models/Notification')).default;
+            await Notification.create({
+                userId: 'all',
+                type: 'new_art',
+                title: 'New Masterpiece Acquired',
+                message: `"${title}" by ${artist} has just been added to the collection.`,
+                link: '/shop'
             });
         } catch (e) { console.error('Notify error', e); }
 
@@ -84,15 +71,11 @@ export async function POST(request: Request) {
 
 export async function PUT(request: Request) {
     try {
+        await dbConnect();
         const formData = await request.formData();
         const id = formData.get('id') as string;
 
-        const art = await readData('art.json');
-        const index = art.findIndex((item: any) => item.id === id);
-
-        if (index === -1) {
-            return NextResponse.json({ error: 'Art not found' }, { status: 404 });
-        }
+        if (!id) return NextResponse.json({ error: 'ID required' }, { status: 400 });
 
         const title = formData.get('title') as string;
         const artist = formData.get('artist') as string;
@@ -103,61 +86,46 @@ export async function PUT(request: Request) {
         const status = formData.get('status') as string;
         const imageFile = formData.get('image') as File | null;
 
+        const updateData: any = {};
+        if (title) updateData.title = title;
+        if (artist) updateData.artist = artist;
+        if (price) updateData.price = Number(price);
+        if (category) updateData.category = category;
+        if (description) updateData.description = description;
+        if (sizes) updateData.sizes = sizes.split(',').map(s => s.trim());
+        if (status) updateData.status = status;
+
         if (imageFile && typeof imageFile !== 'string') {
             const bytes = await imageFile.arrayBuffer();
             const buffer = Buffer.from(bytes);
+            const base64Image = `data:${imageFile.type};base64,${buffer.toString('base64')}`;
 
-            // Sanitize filename
-            const safeName = imageFile.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-            const fileName = `${Date.now()}-${safeName}`;
-
-            const filePath = path.join(uploadDir, fileName);
-            await fs.writeFile(filePath, buffer);
-            art[index].image = `/uploads/${fileName}`;
+            const { uploadToCloudinary } = await import('@/lib/cloudinary');
+            const result: any = await uploadToCloudinary(base64Image, 'art-collection');
+            updateData.image = result.secure_url;
         }
 
-        if (title) art[index].title = title;
-        if (artist) art[index].artist = artist;
-        if (price) art[index].price = Number(price);
-        if (category) art[index].category = category;
-        if (description) art[index].description = description;
-        if (sizes) art[index].sizes = sizes.split(',').map(s => s.trim());
-        if (status) art[index].status = status;
+        const updatedItem = await Art.findByIdAndUpdate(id, updateData, { new: true });
 
-        await writeData('art.json', art);
+        if (!updatedItem) return NextResponse.json({ error: 'Art not found' }, { status: 404 });
 
-        // Notify if Sold Out
-        if (status === 'sold out') {
-            try {
-                await fetch(`${request.url.split('/api')[0]}/api/notifications`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        userId: 'all',
-                        type: 'sold_out',
-                        title: 'Collection Update',
-                        message: `"${art[index].title}" is now officially sold out. Better luck with the next release!`,
-                        link: '/shop'
-                    })
-                });
-            } catch (e) { console.error('Notify error', e); }
-        }
-
-        return NextResponse.json(art[index]);
+        return NextResponse.json(updatedItem);
     } catch (error) {
         return NextResponse.json({ error: 'Failed to update art' }, { status: 500 });
     }
 }
 
 export async function DELETE(request: Request) {
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');
+    try {
+        await dbConnect();
+        const { searchParams } = new URL(request.url);
+        const id = searchParams.get('id');
 
-    if (!id) return NextResponse.json({ error: 'ID required' }, { status: 400 });
+        if (!id) return NextResponse.json({ error: 'ID required' }, { status: 400 });
 
-    const art = await readData('art.json');
-    const filtered = art.filter((item: any) => item.id !== id);
-    await writeData('art.json', filtered);
-
-    return NextResponse.json({ success: true });
+        await Art.findByIdAndDelete(id);
+        return NextResponse.json({ success: true });
+    } catch (error) {
+        return NextResponse.json({ error: 'Failed to delete art' }, { status: 500 });
+    }
 }

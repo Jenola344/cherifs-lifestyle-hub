@@ -22,6 +22,7 @@ export const metadata: Metadata = {
 
 import { CartProvider } from '@/context/CartContext';
 import { UserProvider } from '@/context/UserContext';
+import NextAuthProvider from '@/components/layout/NextAuthProvider';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 
@@ -33,13 +34,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${playfair.variable} ${inter.variable}`}>
-        <UserProvider>
-          <CartProvider>
-            <Navbar />
-            {children}
-            <Footer />
-          </CartProvider>
-        </UserProvider>
+        <NextAuthProvider>
+          <UserProvider>
+            <CartProvider>
+              <Navbar />
+              {children}
+              <Footer />
+            </CartProvider>
+          </UserProvider>
+        </NextAuthProvider>
       </body>
     </html>
   );

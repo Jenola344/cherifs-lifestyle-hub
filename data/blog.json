@@ -1,0 +1,32 @@
+[
+    {
+        "id": "1",
+        "title": "Quiet Luxury: The Art of Elevated Minimalism in 2026",
+        "category": "Trends",
+        "date": "Feb 20, 2026",
+        "excerpt": "Understated sophistication is the new gold standard. Discover whymuted color palettes and sensory comfort are defining the modern luxury home.",
+        "content": "In 2026, luxury is evolving. It's no longer about flashy displays of wealth, but about the quality of the soul within a space. Quiet luxury emphasizes tactile richness—cashmere, wool, and natural stone—paired with mited color palettes that foster a sense of serenity.",
+        "image": "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=1200",
+        "author": "Cherif's Editorial"
+    },
+    {
+        "id": "2",
+        "title": "Biophilic Design: Bringing the Soul of Nature Indoors",
+        "category": "Architecture",
+        "date": "Feb 15, 2026",
+        "excerpt": "Expansive glass doors, indoor gardens, and sustainable materials are more than just a trend—they are essential for well-being.",
+        "content": "Connecting with nature is essential for our well-being. Modern architecture in 2026 is blurring the lines between outdoor and indoor living through reclaimed wood, stone, and vertical gardens.",
+        "image": "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?q=80&w=1200",
+        "author": "Cherif's Editorial"
+    },
+    {
+        "id": "3",
+        "title": "The Transformation: How Curated Art Redefines Your Living Space",
+        "category": "Art Curating",
+        "date": "Feb 05, 2026",
+        "excerpt": "Art is not an afterthought; it is the visual focal point that reflects a homeowner's personality and values.",
+        "content": "Art curating is about storytelling. A single masterpiece can evoke emotion and character, turning a simple room into a personal sanctuary that resonates with its inhabitants.",
+        "image": "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?q=80&w=1200",
+        "author": "Cherif's Editorial"
+    }
+]
