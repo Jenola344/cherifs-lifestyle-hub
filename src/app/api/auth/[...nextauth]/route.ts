@@ -1,18 +1,18 @@
-import NextAuth from "next-auth";
+import NextAuth, { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { MongoDBAdapter } from "@auth/mongodb-adapter";
 import clientPromise from "@/lib/mongodb";
 import dbConnect from "@/lib/mongoose";
 import User from "@/models/User";
-import bcrypt from "bcryptjs"; // Need to install bcryptjs
+import bcrypt from "bcryptjs";
 
-export const authOptions = {
+export const authOptions: NextAuthOptions = {
     adapter: MongoDBAdapter(clientPromise),
     providers: [
         GoogleProvider({
-            clientId: process.env.GOOGLE_CLIENT_ID!,
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+            clientId: process.env.GOOGLE_CLIENT_ID || "",
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
         }),
         CredentialsProvider({
             name: "Credentials",
@@ -52,15 +52,16 @@ export const authOptions = {
         },
         async session({ session, token }: any) {
             if (session.user) {
-                session.user.role = token.role;
-                session.user.id = token.id;
+                (session.user as any).role = token.role;
+                (session.user as any).id = token.id;
             }
             return session;
         }
     },
     pages: {
         signIn: '/auth',
-    }
+    },
+    secret: process.env.NEXTAUTH_SECRET,
 };
 
 const handler = NextAuth(authOptions);

@@ -1,4 +1,4 @@
-import { v2 as cloudinary } from 'cloudinary';
+import { v2 as cloudinary, UploadApiResponse, UploadApiErrorResponse } from 'cloudinary';
 
 if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
     console.warn('Cloudinary environment variables are missing. Image uploads will fail.');
@@ -15,7 +15,7 @@ export default cloudinary;
 /**
  * Uploads a base64 or buffer to Cloudinary
  */
-export async function uploadToCloudinary(fileUri: string, folder: string = 'cherifs-hub') {
+export async function uploadToCloudinary(fileUri: string, folder: string = 'cherifs-hub'): Promise<UploadApiResponse> {
     return new Promise((resolve, reject) => {
         cloudinary.uploader.upload(
             fileUri,
@@ -23,8 +23,9 @@ export async function uploadToCloudinary(fileUri: string, folder: string = 'cher
                 folder: folder,
                 resource_type: 'auto',
             },
-            (error, result) => {
+            (error: UploadApiErrorResponse | undefined, result: UploadApiResponse | undefined) => {
                 if (error) return reject(error);
+                if (!result) return reject(new Error('Cloudinary upload returned no result'));
                 resolve(result);
             }
         );
