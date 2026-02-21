@@ -1,79 +1,57 @@
 import { NextResponse } from 'next/server';
-import { v4 as uuidv4 } from 'uuid';
-import { readData, writeData } from '@/lib/db';
+import dbConnect from '@/lib/mongoose';
+import User from '@/models/User';
+import { APP_CONFIG } from '@/lib/config';
 
 export async function POST(request: Request) {
-    const body = await request.json();
-    const { action, email, password, name, userId, favoriteId } = body;
+    try {
+        await dbConnect();
+        const body = await request.json();
+        const { action, email, password, userId, favoriteId } = body;
 
-    const users = await readData('users.json');
+        if (action === 'toggle-favorite') {
+            const user = await User.findById(userId);
+            if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
 
-    if (action === 'register') {
-        if (users.find((u: any) => u.email === email)) {
-            return NextResponse.json({ error: 'User already exists' }, { status: 400 });
+            if (!user.favorites) user.favorites = [];
+
+            const index = user.favorites.indexOf(favoriteId);
+            if (index === -1) {
+                user.favorites.push(favoriteId);
+            } else {
+                user.favorites.splice(index, 1);
+            }
+
+            await user.save();
+            return NextResponse.json(user);
         }
 
-        const newUser = {
-            id: uuidv4(),
-            name,
-            email,
-            password,
-            favorites: [],
-            createdAt: new Date().toISOString()
-        };
+        // Login handled by NextAuth generally, but keep this for backward compatibility if needed
+        if (action === 'login') {
+            const user = await User.findOne({ email });
+            // Fallback for admin access
+            if (!user && email === APP_CONFIG.adminFallback.email && password === APP_CONFIG.adminFallback.password) {
+                return NextResponse.json({
+                    id: 'admin',
+                    name: 'Hub Director',
+                    email: APP_CONFIG.adminFallback.email,
+                    role: 'admin'
+                });
+            }
+        }
 
-        users.push(newUser);
-        await writeData('users.json', users);
-
-        const { password: _, ...userWithoutPassword } = newUser;
-        return NextResponse.json(userWithoutPassword);
+        return NextResponse.json({ error: 'Action not supported via this route' }, { status: 400 });
+    } catch (error) {
+        return NextResponse.json({ error: 'Server error' }, { status: 500 });
     }
-
-    if (action === 'login') {
-        const user = users.find((u: any) => u.email === email && u.password === password);
-
-        // Fail-safe: Allow a default admin/test user if database is empty on Vercel
-        if (!user && email === 'admin@cherif.com' && password === 'admin123') {
-            return NextResponse.json({
-                id: 'default-admin',
-                name: 'Hub Admin',
-                email: 'admin@cherif.com',
-                favorites: []
-            });
-        }
-
-        if (!user) {
-            return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
-        }
-
-        const { password: _, ...userWithoutPassword } = user;
-        return NextResponse.json(userWithoutPassword);
-    }
-
-    if (action === 'toggle-favorite') {
-        const userIndex = users.findIndex((u: any) => u.id === userId);
-        if (userIndex === -1) return NextResponse.json({ error: 'User not found' }, { status: 404 });
-
-        const user = users[userIndex];
-        if (!user.favorites) user.favorites = [];
-
-        const favIndex = user.favorites.indexOf(favoriteId);
-        if (favIndex === -1) {
-            user.favorites.push(favoriteId);
-        } else {
-            user.favorites.splice(favIndex, 1);
-        }
-
-        await writeData('users.json', users);
-        const { password: _, ...userWithoutPassword } = user;
-        return NextResponse.json(userWithoutPassword);
-    }
-
-    return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
 }
 
 export async function GET() {
-    const users = await readData('users.json');
-    const safeUsers = users.map(({ password: _, ...u }: any) => u);
-    return NextResponse.json(safeUsers);
+    try {
+        await dbConnect();
+        const users = await User.find({}, '-password');
+        return NextResponse.json(users);
+    } catch (error) {
+        return NextResponse.json({ error: 'Failed to fetch users' }, { status: 500 });
+    }
 }

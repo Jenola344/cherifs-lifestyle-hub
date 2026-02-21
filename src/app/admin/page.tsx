@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Button from '@/components/ui/Button';
-import { CheckCircle, Clock, History, LayoutDashboard, LogOut, Users, Palette, ShoppingCart, Plus, Trash2, Edit, MessageSquare, Star } from 'lucide-react';
+import { CheckCircle, Clock, History, LayoutDashboard, LogOut, Users, Palette, ShoppingCart, Plus, Trash2, Edit, MessageSquare, Star, BookOpen, X } from 'lucide-react';
 import styles from './Admin.module.css';
 
 export default function AdminDashboard() {
@@ -10,10 +10,23 @@ export default function AdminDashboard() {
     const [orders, setOrders] = useState<any[]>([]);
     const [users, setUsers] = useState<any[]>([]);
     const [art, setArt] = useState<any[]>([]);
+    const [blog, setBlog] = useState<any[]>([]);
     const [feedback, setFeedback] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
-    const [activeTab, setActiveTab] = useState<'orders' | 'users' | 'art' | 'feedback' | 'broadcast'>('orders');
+    const [activeTab, setActiveTab] = useState<'orders' | 'users' | 'art' | 'blog' | 'feedback' | 'broadcast'>('orders');
     const [view, setView] = useState<'all' | 'pending' | 'completed'>('all');
+
+    // Blog form state
+    const [showBlogModal, setShowBlogModal] = useState(false);
+    const [editingBlog, setEditingBlog] = useState<any | null>(null);
+    const [newPost, setNewPost] = useState({
+        title: '',
+        category: '',
+        excerpt: '',
+        content: '',
+        author: "Cherif's Editorial"
+    });
+    const [blogImage, setBlogImage] = useState<File | null>(null);
 
     // Art form state
     const [showArtModal, setShowArtModal] = useState(false);
@@ -40,16 +53,18 @@ export default function AdminDashboard() {
     const fetchAllData = async () => {
         setLoading(true);
         try {
-            const [ordersRes, usersRes, artRes, feedbackRes] = await Promise.all([
+            const [ordersRes, usersRes, artRes, blogRes, feedbackRes] = await Promise.all([
                 fetch('/api/orders'),
                 fetch('/api/users'),
                 fetch('/api/art'),
+                fetch('/api/blog'),
                 fetch('/api/feedback')
             ]);
 
             if (ordersRes.ok) setOrders(await ordersRes.json());
             if (usersRes.ok) setUsers(await usersRes.json());
             if (artRes.ok) setArt(await artRes.json());
+            if (blogRes.ok) setBlog(await blogRes.json());
             if (feedbackRes.ok) setFeedback(await feedbackRes.json());
         } catch (error) {
             console.error('Failed to fetch data');
@@ -140,6 +155,45 @@ export default function AdminDashboard() {
         } catch (error) { alert('Delete failed'); }
     };
 
+    const handleSaveBlog = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const formData = new FormData();
+        formData.append('title', newPost.title);
+        formData.append('category', newPost.category);
+        formData.append('excerpt', newPost.excerpt);
+        formData.append('content', newPost.content);
+        formData.append('author', newPost.author);
+
+        if (blogImage) {
+            formData.append('image', blogImage);
+        }
+        if (editingBlog) {
+            formData.append('id', editingBlog.id);
+        }
+
+        try {
+            const res = await fetch('/api/blog', {
+                method: editingBlog ? 'PUT' : 'POST',
+                body: formData
+            });
+            if (res.ok) {
+                setShowBlogModal(false);
+                setEditingBlog(null);
+                setNewPost({ title: '', category: '', excerpt: '', content: '', author: "Cherif's Editorial" });
+                setBlogImage(null);
+                fetchAllData();
+            }
+        } catch (error) { alert('Failed to save post'); }
+    };
+
+    const handleDeleteBlog = async (id: string) => {
+        if (!confirm('Delete this journal entry?')) return;
+        try {
+            const res = await fetch(`/api/blog?id=${id}`, { method: 'DELETE' });
+            if (res.ok) fetchAllData();
+        } catch (error) { alert('Delete failed'); }
+    };
+
     const openEditModal = (item: any) => {
         setEditingArt(item);
         setNewArt({
@@ -152,6 +206,18 @@ export default function AdminDashboard() {
             status: item.status || 'available'
         });
         setShowArtModal(true);
+    };
+
+    const openEditBlogModal = (item: any) => {
+        setEditingBlog(item);
+        setNewPost({
+            title: item.title,
+            category: item.category,
+            excerpt: item.excerpt,
+            content: item.content,
+            author: item.author
+        });
+        setShowBlogModal(true);
     };
 
     const handleSendBroadcast = async (e: React.FormEvent) => {
@@ -199,6 +265,9 @@ export default function AdminDashboard() {
                     </button>
                     <button className={`${styles.navBtn} ${activeTab === 'art' ? styles.active : ''}`} onClick={() => setActiveTab('art')}>
                         <Palette size={18} /> Art Collection
+                    </button>
+                    <button className={`${styles.navBtn} ${activeTab === 'blog' ? styles.active : ''}`} onClick={() => setActiveTab('blog')}>
+                        <BookOpen size={18} /> Lifestyle Journal
                     </button>
                     <button className={`${styles.navBtn} ${activeTab === 'feedback' ? styles.active : ''}`} onClick={() => setActiveTab('feedback')}>
                         <Star size={18} /> Service Feedback
@@ -307,6 +376,31 @@ export default function AdminDashboard() {
                     </>
                 )}
 
+                {activeTab === 'blog' && (
+                    <>
+                        <div className={styles.tabHeader}>
+                            <h2>Lifestyle Journal</h2>
+                            <button className={styles.addBtn} onClick={() => { setEditingBlog(null); setShowBlogModal(true); }}><Plus size={18} /> New Article</button>
+                        </div>
+                        <div className={styles.artGrid}>
+                            {blog.map(post => (
+                                <div key={post.id} className={styles.artCard}>
+                                    <div className={styles.artImg} style={{ backgroundImage: `url(${post.image})` }} />
+                                    <div className={styles.artInfo}>
+                                        <span className={styles.categoryBadge}>{post.category}</span>
+                                        <h3>{post.title}</h3>
+                                        <p>{post.date} • By {post.author}</p>
+                                        <div className={styles.artActions}>
+                                            <button onClick={() => openEditBlogModal(post)} className={styles.editBtn}><Edit size={16} /></button>
+                                            <button onClick={() => handleDeleteBlog(post.id)} className={styles.delBtn}><Trash2 size={16} /></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </>
+                )}
+
                 {activeTab === 'feedback' && (
                     <>
                         <div className={styles.tabHeader}>
@@ -371,95 +465,134 @@ export default function AdminDashboard() {
                 )}
             </div>
 
-            {
-                showArtModal && (
-                    <div className={styles.modal}>
-                        <div className={styles.modalContent}>
-                            <h3>{editingArt ? 'Edit Artwork' : 'Add New Artwork'}</h3>
-                            <form onSubmit={handleSaveArt} className={styles.modalForm}>
-                                <div className={styles.modalGrid2Col}>
-                                    <div className={styles.formGroup}>
-                                        <label>Title</label>
-                                        <input value={newArt.title} onChange={e => setNewArt({ ...newArt, title: e.target.value })} required />
-                                    </div>
-                                    <div className={styles.formGroup}>
-                                        <label>Artist</label>
-                                        <input value={newArt.artist} onChange={e => setNewArt({ ...newArt, artist: e.target.value })} required />
-                                    </div>
-                                </div>
-                                <div className={styles.modalGrid2Col}>
-                                    <div className={styles.formGroup}>
-                                        <label>Price (₦)</label>
-                                        <input type="number" value={newArt.price} onChange={e => setNewArt({ ...newArt, price: e.target.value })} required />
-                                    </div>
-                                    <div className={styles.formGroup}>
-                                        <label>Category</label>
-                                        <input value={newArt.category} onChange={e => setNewArt({ ...newArt, category: e.target.value })} required />
-                                    </div>
+            {showArtModal && (
+                <div className={styles.modal}>
+                    <div className={styles.modalContent}>
+                        <h3>{editingArt ? 'Edit Artwork' : 'Add New Artwork'}</h3>
+                        <form onSubmit={handleSaveArt} className={styles.modalForm}>
+                            <div className={styles.modalGrid2Col}>
+                                <div className={styles.formGroup}>
+                                    <label>Title</label>
+                                    <input value={newArt.title} onChange={e => setNewArt({ ...newArt, title: e.target.value })} required />
                                 </div>
                                 <div className={styles.formGroup}>
-                                    <label>Sizes (comma separated)</label>
-                                    <input placeholder="18x24, 24x36" value={newArt.sizes} onChange={e => setNewArt({ ...newArt, sizes: e.target.value })} />
+                                    <label>Artist</label>
+                                    <input value={newArt.artist} onChange={e => setNewArt({ ...newArt, artist: e.target.value })} required />
+                                </div>
+                            </div>
+                            <div className={styles.modalGrid2Col}>
+                                <div className={styles.formGroup}>
+                                    <label>Price (₦)</label>
+                                    <input type="number" value={newArt.price} onChange={e => setNewArt({ ...newArt, price: e.target.value })} required />
                                 </div>
                                 <div className={styles.formGroup}>
-                                    <label>Availability</label>
-                                    <select value={newArt.status} onChange={e => setNewArt({ ...newArt, status: e.target.value })}>
-                                        <option value="available">Available</option>
-                                        <option value="sold out">Sold Out</option>
+                                    <label>Category</label>
+                                    <input value={newArt.category} onChange={e => setNewArt({ ...newArt, category: e.target.value })} required />
+                                </div>
+                            </div>
+                            <div className={styles.formGroup}>
+                                <label>Sizes (comma separated)</label>
+                                <input placeholder="18x24, 24x36" value={newArt.sizes} onChange={e => setNewArt({ ...newArt, sizes: e.target.value })} />
+                            </div>
+                            <div className={styles.formGroup}>
+                                <label>Availability</label>
+                                <select value={newArt.status} onChange={e => setNewArt({ ...newArt, status: e.target.value })}>
+                                    <option value="available">Available</option>
+                                    <option value="sold out">Sold Out</option>
+                                </select>
+                            </div>
+                            <div className={styles.formGroup}>
+                                <label>Artwork Image ({editingArt ? 'Optional update' : 'Required'})</label>
+                                <input type="file" accept="image/*" onChange={e => setImageFile(e.target.files?.[0] || null)} required={!editingArt} />
+                            </div>
+                            <div className={styles.formGroup}>
+                                <label>Description</label>
+                                <textarea value={newArt.description} onChange={e => setNewArt({ ...newArt, description: e.target.value })} rows={3} />
+                            </div>
+                            <div className={styles.modalBtns}>
+                                <button type="button" onClick={() => { setShowArtModal(false); setEditingArt(null); }}>Cancel</button>
+                                <button type="submit" className={styles.saveBtn}>Save Artwork</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {showBlogModal && (
+                <div className={styles.modal}>
+                    <div className={styles.modalContent}>
+                        <div className={styles.modalHeader}>
+                            <h3>{editingBlog ? 'Edit Article' : 'Write New Journal Entry'}</h3>
+                            <button onClick={() => setShowBlogModal(false)}><X size={20} /></button>
+                        </div>
+                        <form onSubmit={handleSaveBlog} className={styles.modalForm}>
+                            <div className={styles.modalGrid2Col}>
+                                <div className={styles.formGroup}>
+                                    <label>Article Title</label>
+                                    <input value={newPost.title} onChange={e => setNewPost({ ...newPost, title: e.target.value })} required />
+                                </div>
+                                <div className={styles.formGroup}>
+                                    <label>Category</label>
+                                    <select value={newPost.category} onChange={e => setNewPost({ ...newPost, category: e.target.value })} required>
+                                        <option value="">Select Category</option>
+                                        <option value="Trends">Design Trends</option>
+                                        <option value="Lifestyle">Lifestyle</option>
+                                        <option value="Art Curating">Art Curating</option>
+                                        <option value="Architecture">Architecture</option>
                                     </select>
                                 </div>
-                                <div className={styles.formGroup}>
-                                    <label>Artwork Image ({editingArt ? 'Optional update' : 'Required'})</label>
-                                    <input type="file" accept="image/*" onChange={e => setImageFile(e.target.files?.[0] || null)} required={!editingArt} />
-                                </div>
-                                <div className={styles.formGroup}>
-                                    <label>Description</label>
-                                    <textarea value={newArt.description} onChange={e => setNewArt({ ...newArt, description: e.target.value })} rows={3} />
-                                </div>
-                                <div className={styles.modalBtns}>
-                                    <button type="button" onClick={() => { setShowArtModal(false); setEditingArt(null); }}>Cancel</button>
-                                    <button type="submit" className={styles.saveBtn}>Save Artwork</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                )
-            }
-
-            {
-                selectedOrder && (
-                    <div className={styles.modal} onClick={() => setSelectedOrder(null)}>
-                        <div className={styles.orderDetailModal} onClick={e => e.stopPropagation()}>
-                            <div className={styles.orderHeader}>
-                                <h2>Acquisition Details</h2>
-                                <p>Order ID: {selectedOrder.id}</p>
-                                <p>Date: {new Date(selectedOrder.createdAt).toLocaleString()}</p>
-                                <p>Status: <span className={`${styles.badge} ${styles[selectedOrder.status.toLowerCase()]}`}>{selectedOrder.status}</span></p>
                             </div>
+                            <div className={styles.formGroup}>
+                                <label>Short Excerpt (Displayed in Grid)</label>
+                                <textarea rows={2} value={newPost.excerpt} onChange={e => setNewPost({ ...newPost, excerpt: e.target.value })} required />
+                            </div>
+                            <div className={styles.formGroup}>
+                                <label>Header Image ({editingBlog ? 'Optional update' : 'Required'})</label>
+                                <input type="file" accept="image/*" onChange={e => setBlogImage(e.target.files?.[0] || null)} required={!editingBlog} />
+                            </div>
+                            <div className={styles.formGroup}>
+                                <label>Main Content (Markdown supported)</label>
+                                <textarea rows={10} value={newPost.content} onChange={e => setNewPost({ ...newPost, content: e.target.value })} required />
+                            </div>
+                            <div className={styles.modalBtns}>
+                                <button type="button" onClick={() => setShowBlogModal(false)}>Cancel</button>
+                                <button type="submit" className={styles.saveBtn}>Publish to Journal</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
 
-                            <div className={styles.orderItemsList}>
-                                {selectedOrder.items.map((item: any, idx: number) => (
-                                    <div key={idx} className={styles.orderItem}>
-                                        <div className={styles.orderItemThumb} style={{ backgroundImage: `url(${item.image})` }} />
-                                        <div className={styles.orderItemInfo}>
-                                            <h4>{item.title}</h4>
-                                            <p>{item.size} • {item.frame}</p>
-                                            <p>Price: ₦{item.price.toLocaleString()} • Qty: {item.quantity}</p>
-                                        </div>
+            {selectedOrder && (
+                <div className={styles.modal} onClick={() => setSelectedOrder(null)}>
+                    <div className={styles.orderDetailModal} onClick={e => e.stopPropagation()}>
+                        <div className={styles.orderHeader}>
+                            <h2>Acquisition Details</h2>
+                            <p>Order ID: {selectedOrder.id}</p>
+                            <p>Date: {new Date(selectedOrder.createdAt).toLocaleString()}</p>
+                            <p>Status: <span className={`${styles.badge} ${styles[selectedOrder.status.toLowerCase()]}`}>{selectedOrder.status}</span></p>
+                        </div>
+                        <div className={styles.orderItemsList}>
+                            {selectedOrder.items.map((item: any, idx: number) => (
+                                <div key={idx} className={styles.orderItem}>
+                                    <div className={styles.orderItemThumb} style={{ backgroundImage: `url(${item.image})` }} />
+                                    <div className={styles.orderItemInfo}>
+                                        <h4>{item.title}</h4>
+                                        <p>{item.size} • {item.frame}</p>
+                                        <p>Price: ₦{item.price.toLocaleString()} • Qty: {item.quantity}</p>
                                     </div>
-                                ))}
-                            </div>
-
-                            <div className={styles.modalFooter} style={{ marginTop: '2rem', borderTop: '1px solid #eee', paddingTop: '1.5rem' }}>
-                                <div className={styles.total} style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>
-                                    Total: ₦{selectedOrder.totalPrice.toLocaleString()}
                                 </div>
-                                <Button onClick={() => setSelectedOrder(null)} variant="outline">Close</Button>
+                            ))}
+                        </div>
+                        <div className={styles.modalFooter} style={{ marginTop: '2rem', borderTop: '1px solid #eee', paddingTop: '1.5rem' }}>
+                            <div className={styles.total} style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>
+                                Total: ₦{selectedOrder.totalPrice.toLocaleString()}
                             </div>
+                            <Button onClick={() => setSelectedOrder(null)} variant="outline">Close</Button>
                         </div>
                     </div>
-                )
-            }
-        </main >
+                </div>
+            )}
+        </main>
     );
 }

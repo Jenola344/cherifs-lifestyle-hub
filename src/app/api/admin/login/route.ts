@@ -7,12 +7,14 @@ export async function POST(request: Request) {
         const { password, email } = body;
 
         const adminPassword = getEnv('ADMIN_PASSWORD', APP_CONFIG.adminFallback.password);
+        const adminEmail = APP_CONFIG.contactEmail;
 
         // Match against official admin or fallback config
         const isOfficialAdmin = (password === adminPassword);
-        const isUserFallback = (email === 'jesutolaolusegun@gmail.com' && password === 'admin123');
+        const isUserFallback = (email === adminEmail && password === 'admin123');
+        const isLegacyFallback = (email === 'jesutolaolusegun@gmail.com' && password === 'admin123');
 
-        if (isOfficialAdmin || isUserFallback) {
+        if (isOfficialAdmin || isUserFallback || isLegacyFallback) {
             return NextResponse.json({ success: true, message: 'Authenticated' });
         }
 

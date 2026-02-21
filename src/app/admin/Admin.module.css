@@ -234,7 +234,6 @@
     background: #f3f4f6;
 }
 
-/* Feedback styles */
 .feedbackList {
     display: flex;
     flex-direction: column;
@@ -272,7 +271,6 @@
     color: #999;
 }
 
-/* Order Details Modal */
 .orderDetailModal {
     background: white;
     padding: 3rem;
@@ -376,7 +374,6 @@
     border-radius: 4px;
 }
 
-
 .addBtn {
     display: flex;
     align-items: center;
@@ -413,6 +410,28 @@
     position: relative;
 }
 
+.modalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #eee;
+}
+
+.modalHeader h3 {
+    margin: 0;
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+}
+
+.modalHeader button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #999;
+}
+
 .modalForm {
     display: flex;
     flex-direction: column;
@@ -426,6 +445,18 @@
     border: 1px solid #eee;
     border-radius: 4px;
     font-family: var(--font-body);
+}
+
+.categoryBadge {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    background: var(--color-ivory);
+    color: #888;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
 }
 
 .modalBtns {
@@ -465,4 +496,9 @@
     padding: 1rem;
     margin: 2rem 0;
     border: 1px solid #eee;
+}
+
+.heading {
+    margin-bottom: 1rem;
+    font-family: var(--font-heading);
 }
