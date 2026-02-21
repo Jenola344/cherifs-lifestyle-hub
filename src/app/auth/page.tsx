@@ -1,11 +1,11 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import Button from '@/components/ui/Button';
 import styles from './Auth.module.css';
 
-export default function AuthPage() {
+function AuthContent() {
     const [isLogin, setIsLogin] = useState(true);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -134,5 +134,13 @@ export default function AuthPage() {
                 </div>
             </div>
         </main>
+    );
+}
+
+export default function AuthPage() {
+    return (
+        <Suspense fallback={<div className={styles.loader}>Loading...</div>}>
+            <AuthContent />
+        </Suspense>
     );
 }
