@@ -7,12 +7,18 @@ import dbConnect from "@/lib/mongoose";
 import User from "@/models/User";
 import bcrypt from "bcryptjs";
 
+// Determine if we should use the database adapter.
+// During build time on Render/Vercel, we might not have the URI yet.
+const useAdapter = !!process.env.MONGODB_URI;
+
 export const authOptions: NextAuthOptions = {
-    adapter: MongoDBAdapter(clientPromise),
+    // Only attach the adapter if we have a connection string.
+    // This prevents the MongoDB library from trying to initialize during build.
+    ...(useAdapter ? { adapter: MongoDBAdapter(clientPromise) } : {}),
     providers: [
         GoogleProvider({
-            clientId: process.env.GOOGLE_CLIENT_ID || "",
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+            clientId: process.env.GOOGLE_CLIENT_ID || "dummy",
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET || "dummy",
         }),
         CredentialsProvider({
             name: "Credentials",
@@ -61,7 +67,7 @@ export const authOptions: NextAuthOptions = {
     pages: {
         signIn: '/auth',
     },
-    secret: process.env.NEXTAUTH_SECRET,
+    secret: process.env.NEXTAUTH_SECRET || "cherif-secret-fallback",
 };
 
 const handler = NextAuth(authOptions);

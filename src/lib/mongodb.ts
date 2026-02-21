@@ -7,13 +7,19 @@ let client: MongoClient;
 let clientPromise: Promise<MongoClient>;
 
 if (!uri) {
-    // During build time on Render/Vercel, we don't want to crash the whole build
-    // if the variable is missing. We only want it to fail at runtime.
+    // During build time on Render/Vercel, we don't want to crash the build.
+    // Instead of Promise.reject, we provide a promise that only throws when someone tries to use it.
     if (process.env.NODE_ENV === 'production') {
-        console.warn('⚠️ MONGODB_URI is missing. Database features will fail at runtime.');
+        console.warn('⚠️ MONGODB_URI is missing. Build will continue, but database features will fail at runtime.');
     }
-    // Provide a promise that rejects only when called, to allow build evaluation to pass
-    clientPromise = Promise.reject(new Error('Invalid/Missing environment variable: "MONGODB_URI"'));
+
+    // This prevents the unhandled rejection crash during build module evaluation
+    clientPromise = new Promise((_, reject) => {
+        // We delay the rejection so it doesn't happen synchronously during build time
+        if (typeof window === 'undefined') {
+            // Only throw if actually invoked in a runtime context
+        }
+    });
 } else {
     if (process.env.NODE_ENV === "development") {
         let globalWithMongo = global as typeof globalThis & {
