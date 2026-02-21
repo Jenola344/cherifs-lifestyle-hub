@@ -10,6 +10,10 @@ export async function POST(request: Request) {
         await dbConnect();
         const { name, email, password } = await request.json();
 
+        if (!name || !email || !password) {
+            return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+        }
+
         // Check if user exists
         const existingUser = await User.findOne({ email });
         if (existingUser) {
@@ -32,34 +36,45 @@ export async function POST(request: Request) {
         });
 
         // Send Verification Email
-        const transporter = nodemailer.createTransport({
-            host: process.env.EMAIL_SERVER_HOST,
-            port: Number(process.env.EMAIL_SERVER_PORT),
-            auth: {
-                user: process.env.EMAIL_SERVER_USER,
-                pass: process.env.EMAIL_SERVER_PASSWORD,
-            },
-        });
+        try {
+            const transporter = nodemailer.createTransport({
+                host: process.env.EMAIL_SERVER_HOST,
+                port: Number(process.env.EMAIL_SERVER_PORT),
+                auth: {
+                    user: process.env.EMAIL_SERVER_USER,
+                    pass: process.env.EMAIL_SERVER_PASSWORD,
+                },
+            });
 
-        const verificationUrl = `${process.env.NEXTAUTH_URL}/api/auth/verify?token=${verificationToken}&email=${email}`;
+            const nextAuthUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+            const verificationUrl = `${nextAuthUrl}/api/auth/verify?token=${verificationToken}&email=${email}`;
 
-        await transporter.sendMail({
-            from: process.env.EMAIL_FROM,
-            to: email,
-            subject: 'Verify your account - Cherif\'s Hub',
-            html: `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee;">
-                    <h2 style="color: #333;">Welcome to Cherif's Lifestyle Hub</h2>
-                    <p>Thank you for joining us. Please verify your email address to get started.</p>
-                    <a href="${verificationUrl}" style="display: inline-block; padding: 10px 20px; background-color: #000; color: #fff; text-decoration: none; border-radius: 5px;">Verify Email</a>
-                    <p style="margin-top: 20px; font-size: 12px; color: #666;">If you didn't request this, please ignore this email.</p>
-                </div>
-            `,
-        });
+            await transporter.sendMail({
+                from: process.env.EMAIL_FROM,
+                to: email,
+                subject: 'Verify your account - Cherif\'s Hub',
+                html: `
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee;">
+                        <h2 style="color: #333;">Welcome to Cherif's Lifestyle Hub</h2>
+                        <p>Thank you for joining us. Please verify your email address to get started.</p>
+                        <a href="${verificationUrl}" style="display: inline-block; padding: 10px 20px; background-color: #000; color: #fff; text-decoration: none; border-radius: 5px;">Verify Email</a>
+                        <p style="margin-top: 20px; font-size: 12px; color: #666;">If you didn't request this, please ignore this email.</p>
+                    </div>
+                `,
+            });
+        } catch (mailError) {
+            console.error('Mail sending failed:', mailError);
+            // We still return 200/success because the user WAS created in the DB.
+            // But we warn them that the email might not have arrived.
+            return NextResponse.json({
+                message: 'User registered, but verification email could not be sent. Please contact support or try logging in.',
+                warning: 'Mail delivery error'
+            });
+        }
 
         return NextResponse.json({ message: 'User registered. Please check your email for verification.' });
-    } catch (error) {
-        console.error('Registration error:', error);
-        return NextResponse.json({ error: 'Registration failed' }, { status: 500 });
+    } catch (error: any) {
+        console.error('Registration error details:', error);
+        return NextResponse.json({ error: error.message || 'Registration failed' }, { status: 500 });
     }
 }
