@@ -14,12 +14,6 @@ async function dbConnect() {
     }
 
     if (!MONGODB_URI) {
-        // If we're on the server during a build, don't throw.
-        // This allows the build to complete even if DB secrets are missing.
-        if (process.env.NODE_ENV === 'production') {
-            console.warn('⚠️ Skipping DB connection: MONGODB_URI is not defined.');
-            return null;
-        }
         throw new Error('Please define the MONGODB_URI environment variable inside .env.local');
     }
 

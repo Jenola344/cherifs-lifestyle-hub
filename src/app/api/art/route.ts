@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongoose';
 import Art from '@/models/Art';
+import { uploadToCloudinary } from '@/lib/cloudinary';
 
 export async function GET() {
     try {
@@ -32,7 +33,6 @@ export async function POST(request: Request) {
             const buffer = Buffer.from(bytes);
             const base64Image = `data:${imageFile.type};base64,${buffer.toString('base64')}`;
 
-            const { uploadToCloudinary } = await import('@/lib/cloudinary');
             const result: any = await uploadToCloudinary(base64Image, 'art-collection');
             imageUrl = result.secure_url;
         } else {
@@ -100,7 +100,6 @@ export async function PUT(request: Request) {
             const buffer = Buffer.from(bytes);
             const base64Image = `data:${imageFile.type};base64,${buffer.toString('base64')}`;
 
-            const { uploadToCloudinary } = await import('@/lib/cloudinary');
             const result: any = await uploadToCloudinary(base64Image, 'art-collection');
             updateData.image = result.secure_url;
         }

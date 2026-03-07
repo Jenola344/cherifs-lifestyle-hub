@@ -8,7 +8,7 @@ export async function GET(request: Request) {
     const email = searchParams.get('email');
 
     if (!token || !email) {
-        return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/auth?error=invalid_verification`);
+        return NextResponse.redirect(new URL('/auth?error=invalid_verification', request.url));
     }
 
     try {
@@ -16,15 +16,15 @@ export async function GET(request: Request) {
         const user = await User.findOne({ email, verificationToken: token });
 
         if (!user) {
-            return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/auth?error=invalid_verification`);
+            return NextResponse.redirect(new URL('/auth?error=invalid_verification', request.url));
         }
 
         user.isVerified = true;
         user.verificationToken = undefined;
         await user.save();
 
-        return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/auth?success=verified`);
+        return NextResponse.redirect(new URL('/auth?success=verified', request.url));
     } catch (error) {
-        return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/auth?error=server_error`);
+        return NextResponse.redirect(new URL('/auth?error=server_error', request.url));
     }
 }
