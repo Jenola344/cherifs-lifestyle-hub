@@ -28,13 +28,27 @@ export const authOptions: NextAuthOptions = {
             },
             async authorize(credentials) {
                 await dbConnect();
-                if (!credentials?.email || !credentials?.password) return null;
+                if (!credentials?.email || !credentials?.password) {
+                    throw new Error("Missing email or password");
+                }
 
                 const user = await User.findOne({ email: credentials.email });
-                if (!user || !user.password) return null;
+                if (!user) {
+                    throw new Error("Invalid email or password");
+                }
+
+                if (!user.password) {
+                    throw new Error("This email is registered with Google. Please sign in with Google.");
+                }
+
+                if (!user.isVerified) {
+                    throw new Error("Please verify your email address to sign in. Check your inbox for the verification link.");
+                }
 
                 const isValid = await bcrypt.compare(credentials.password, user.password);
-                if (!isValid) return null;
+                if (!isValid) {
+                    throw new Error("Invalid email or password");
+                }
 
                 return {
                     id: user._id.toString(),
@@ -51,7 +65,7 @@ export const authOptions: NextAuthOptions = {
     callbacks: {
         async jwt({ token, user }: any) {
             if (user) {
-                token.role = user.role;
+                token.role = user.role || 'user';
                 token.id = user.id;
             }
             return token;

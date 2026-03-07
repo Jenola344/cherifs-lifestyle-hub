@@ -3,6 +3,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import Button from '@/components/ui/Button';
+import Link from 'next/link';
 import styles from './Auth.module.css';
 
 function AuthContent() {
@@ -105,6 +106,13 @@ function AuthContent() {
                                 placeholder="••••••••"
                                 required
                             />
+                            {isLogin && (
+                                <div style={{ textAlign: 'right', marginTop: '0.5rem' }}>
+                                    <Link href="/auth/forgot-password" className={styles.toggle} style={{ fontSize: '0.85rem' }}>
+                                        Forgot Password?
+                                    </Link>
+                                </div>
+                            )}
                         </div>
 
                         <Button type="submit" variant="primary" className={styles.btn} disabled={loading}>

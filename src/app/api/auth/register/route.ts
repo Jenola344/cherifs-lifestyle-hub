@@ -46,8 +46,9 @@ export async function POST(request: Request) {
                 },
             });
 
-            const nextAuthUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
-            const verificationUrl = `${nextAuthUrl}/api/auth/verify?token=${verificationToken}&email=${email}`;
+            const urlObj = new URL(request.url);
+            const appUrl = process.env.NEXTAUTH_URL || urlObj.origin;
+            const verificationUrl = `${appUrl}/api/auth/verify?token=${verificationToken}&email=${email}`;
 
             await transporter.sendMail({
                 from: process.env.EMAIL_FROM,
