@@ -17,8 +17,9 @@ export const authOptions: NextAuthOptions = {
     ...(useAdapter ? { adapter: MongoDBAdapter(clientPromise) } : {}),
     providers: [
         GoogleProvider({
-            clientId: process.env.GOOGLE_CLIENT_ID || "dummy",
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET || "dummy",
+            clientId: process.env.GOOGLE_CLIENT_ID || "",
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+            allowDangerousEmailAccountLinking: true,
         }),
         CredentialsProvider({
             name: "Credentials",

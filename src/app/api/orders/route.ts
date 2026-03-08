@@ -1,68 +1,77 @@
 import { NextResponse } from 'next/server';
-import fs from 'fs/promises';
-import path from 'path';
-import { v4 as uuidv4 } from 'uuid';
-import { readData, writeData } from '@/lib/db';
+import dbConnect from '@/lib/mongoose';
+import Order from '@/models/Order';
 
 export async function GET() {
-    const orders = await readData('orders.json');
-    return NextResponse.json(orders);
+    try {
+        await dbConnect();
+        const orders = await Order.find({}).sort({ createdAt: -1 }).lean();
+
+        // Map _id to id
+        const formattedOrders = orders.map((o: any) => ({
+            ...o,
+            id: o._id.toString()
+        }));
+
+        return NextResponse.json(formattedOrders);
+    } catch (error) {
+        return NextResponse.json({ error: 'Failed to fetch orders' }, { status: 500 });
+    }
 }
 
 export async function POST(request: Request) {
-    const body = await request.json();
-    const orders = await readData('orders.json');
+    try {
+        await dbConnect();
+        const body = await request.json();
 
-    const newOrder = {
-        id: uuidv4(),
-        ...body,
-        status: 'Pending',
-        createdAt: new Date().toISOString(),
-    };
+        const newOrder = await Order.create({
+            ...body,
+            status: 'Pending'
+        });
 
-    orders.push(newOrder);
-    await writeData('orders.json', orders);
+        const responseObj = {
+            ...newOrder.toObject(),
+            id: newOrder._id.toString()
+        };
 
-    return NextResponse.json(newOrder);
+        return NextResponse.json(responseObj);
+    } catch (error) {
+        return NextResponse.json({ error: 'Failed to compile order' }, { status: 500 });
+    }
 }
 
 export async function PUT(request: Request) {
-    const body = await request.json();
-    const { id, status } = body;
+    try {
+        await dbConnect();
+        const body = await request.json();
+        const { id, status } = body;
 
-    const orders = await readData('orders.json');
-    const index = orders.findIndex((o: any) => o.id === id);
+        const updatedOrder = await Order.findByIdAndUpdate(
+            id,
+            { status },
+            { new: true }
+        );
 
-    if (index !== -1) {
-        const oldStatus = orders[index].status;
-        orders[index].status = status;
-        await writeData('orders.json', orders);
+        if (!updatedOrder) {
+            return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+        }
 
         // Notify User about Status Change
         try {
-            const userRes = await fetch(`${request.url.split('/api')[0]}/api/users`);
-            const users = await userRes.json();
-            const user = users.find((u: any) => u.email === orders[index].userEmail);
-
-            if (user) {
-                await fetch(`${request.url.split('/api')[0]}/api/notifications`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        userId: user.id,
-                        type: 'order_status',
-                        title: status === 'Completed' ? 'Acquisition Approved' : 'Acquisition Update',
-                        message: status === 'Completed'
-                            ? `Your acquisition for ${orders[index].items.length} items has been approved.`
-                            : `Your order status has been updated to: ${status}`,
-                        link: '/profile'
-                    })
-                });
-            }
+            const Notification = (await import('@/models/Notification')).default;
+            await Notification.create({
+                userId: updatedOrder.userEmail || updatedOrder.userId,
+                type: 'order_status',
+                title: status === 'Completed' ? 'Acquisition Approved' : 'Acquisition Update',
+                message: status === 'Completed'
+                    ? `Your acquisition for ${updatedOrder.items.length} items has been approved.`
+                    : `Your order status has been updated to: ${status}`,
+                link: '/profile'
+            });
         } catch (e) { console.error('Notify Order Error', e); }
 
-        return NextResponse.json(orders[index]);
+        return NextResponse.json({ ...updatedOrder.toObject(), id: updatedOrder._id.toString() });
+    } catch (error) {
+        return NextResponse.json({ error: 'Failed to update order' }, { status: 500 });
     }
-
-    return NextResponse.json({ error: 'Order not found' }, { status: 404 });
 }
