@@ -38,7 +38,7 @@ function AuthContent() {
                 });
 
                 if (result?.error) throw new Error('Invalid email or password');
-                router.push('/profile');
+                router.push('/');
             } else {
                 const res = await fetch('/api/auth/register', {
                     method: 'POST',
@@ -125,7 +125,7 @@ function AuthContent() {
                     </div>
 
                     <Button
-                        onClick={() => signIn('google', { callbackUrl: '/profile' })}
+                        onClick={() => signIn('google', { callbackUrl: '/' })}
                         variant="outline"
                         className={styles.googleBtn}
                     >

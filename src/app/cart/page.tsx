@@ -33,9 +33,18 @@ export default function Cart() {
         setIsSubmitting(true);
 
         const orderData = {
+            userId: user?.id,
             customerName,
             userEmail: user?.email,
-            items: cart,
+            items: cart.map(item => ({
+                artId: item.id,
+                title: item.title,
+                price: item.price,
+                image: item.image,
+                size: item.size,
+                frame: item.frame,
+                quantity: item.quantity
+            })),
             totalPrice,
             platform: 'web-whatsapp'
         };

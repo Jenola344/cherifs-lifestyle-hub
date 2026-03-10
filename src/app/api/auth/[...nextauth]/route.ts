@@ -6,6 +6,7 @@ import clientPromise from "@/lib/mongodb";
 import dbConnect from "@/lib/mongoose";
 import User from "@/models/User";
 import bcrypt from "bcryptjs";
+import EmailProvider from "next-auth/providers/email";
 
 // Determine if we should use the database adapter.
 // During build time on Render/Vercel, we might not have the URI yet.
@@ -20,6 +21,17 @@ export const authOptions: NextAuthOptions = {
             clientId: process.env.GOOGLE_CLIENT_ID || "",
             clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
             allowDangerousEmailAccountLinking: true,
+        }),
+        EmailProvider({
+            server: {
+              host: process.env.EMAIL_SERVER_HOST,
+              port: Number(process.env.EMAIL_SERVER_PORT),
+              auth: {
+                user: process.env.EMAIL_SERVER_USER,
+                pass: process.env.EMAIL_SERVER_PASSWORD,
+              },
+            },
+            from: process.env.EMAIL_FROM,
         }),
         CredentialsProvider({
             name: "Credentials",
@@ -56,6 +68,7 @@ export const authOptions: NextAuthOptions = {
                     name: user.name,
                     email: user.email,
                     role: user.role,
+                    createdAt: user.createdAt,
                 };
             }
         })
@@ -68,6 +81,7 @@ export const authOptions: NextAuthOptions = {
             if (user) {
                 token.role = user.role || 'user';
                 token.id = user.id;
+                token.createdAt = user.createdAt;
             }
             return token;
         },
@@ -75,12 +89,22 @@ export const authOptions: NextAuthOptions = {
             if (session.user) {
                 (session.user as any).role = token.role;
                 (session.user as any).id = token.id;
+                (session.user as any).createdAt = token.createdAt;
             }
             return session;
         }
     },
     pages: {
         signIn: '/auth',
+    },
+    events: {
+        async createUser({ user }: { user: any }) {
+            // MongoDBAdapter might not set timestamps via driver.
+            // Let Mongoose ensure they're there if we re-fetch, but best set it now.
+            await dbConnect();
+            const User = (await import("@/models/User")).default;
+            await User.findByIdAndUpdate(user.id, { createdAt: new Date() });
+        }
     },
     secret: process.env.NEXTAUTH_SECRET || "cherif-secret-fallback",
 };

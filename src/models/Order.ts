@@ -2,14 +2,20 @@ import mongoose from 'mongoose';
 
 const OrderSchema = new mongoose.Schema({
     userId: { type: String, required: true },
+    customerName: { type: String },
+    userEmail: { type: String },
+    platform: { type: String, default: 'web' },
     items: [{
         artId: String,
         title: String,
         price: Number,
-        image: String
+        image: String,
+        size: String,
+        frame: String,
+        quantity: Number
     }],
-    total: { type: Number, required: true },
-    status: { type: String, default: 'pending' },
+    totalPrice: { type: Number, required: true },
+    status: { type: String, default: 'Pending' },
     shippingAddress: {
         name: String,
         address: String,
