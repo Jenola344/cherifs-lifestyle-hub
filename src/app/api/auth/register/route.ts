@@ -44,16 +44,6 @@ export async function POST(request: Request) {
         const verificationToken = crypto.randomBytes(32).toString('hex');
         const verificationTokenExpiry = new Date(Date.now() + 1000 * 60 * 60); // 1 hour
 
-        // Create user
-        const user = await User.create({
-            name: userName,
-            email,
-            password: hashedPassword,
-            verificationToken,
-            verificationTokenExpiry,
-            isVerified: false
-        });
-
         // Send Verification Email
         try {
             const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
@@ -92,6 +82,7 @@ export async function POST(request: Request) {
             });
             logger.info(`Verification email sent: ${info.messageId}`);
         } catch (mailError) {
+            console.log("mailError: ", mailError);
             // Log internally only — never expose SMTP error details to the client.
             logger.error('[Register] Verification email failed to send', mailError);
             // User was created successfully in DB. Warn them without leaking internals.
@@ -101,8 +92,19 @@ export async function POST(request: Request) {
             });
         }
 
+        // Create user
+        const user = await User.create({
+            name: userName,
+            email,
+            password: hashedPassword,
+            verificationToken,
+            verificationTokenExpiry,
+            isVerified: false
+        });
+
         return NextResponse.json({ message: 'User registered. Please check your email for verification.' });
     } catch (error: any) {
+        console.log("registration error: ", error);
         logger.error('Registration error:', error);
         return NextResponse.json({ error: 'Registration failed' }, { status: 500 });
     }
