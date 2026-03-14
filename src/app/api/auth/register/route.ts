@@ -57,12 +57,8 @@ export async function POST(request: Request) {
                     user: process.env.EMAIL_SERVER_USER,
                     pass: process.env.EMAIL_SERVER_PASSWORD,
                 },
-                // Add timeouts to prevent hanging on Render
-                connectionTimeout: 10000, 
-                greetingTimeout: 10000,
-                socketTimeout: 10000,
             });
-
+            
             const info = await transporter.sendMail({
                 from: process.env.EMAIL_FROM || `"Cherif's Lifestyle Hub" <${process.env.EMAIL_SERVER_USER}>`,
                 to: email,

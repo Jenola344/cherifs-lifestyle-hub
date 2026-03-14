@@ -47,9 +47,6 @@ export async function POST(request: Request) {
                 user: process.env.EMAIL_SERVER_USER,
                 pass: process.env.EMAIL_SERVER_PASSWORD,
             },
-            connectionTimeout: 10000,
-            greetingTimeout: 10000,
-            socketTimeout: 10000,
         });
 
         const urlObj = new URL(request.url);
