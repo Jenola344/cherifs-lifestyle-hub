@@ -190,11 +190,12 @@
 .modalContent {
     background: white;
     width: 100%;
-    max-width: 1100px;
+    max-width: 1200px;
+    height: auto;
     max-height: 90vh;
     border-radius: var(--radius-sm);
     position: relative;
-    overflow-y: auto;
+    overflow: hidden; /* Prevent double scrollbar */
 }
 
 /* Modal updates */
@@ -202,7 +203,7 @@
     flex: 1;
     overflow-y: auto;
     padding-right: 1.5rem;
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
 }
 
 .soldBadgeLarge {
@@ -337,7 +338,10 @@
 }
 
 .modalInfo {
-    padding: 4rem;
+    padding: 3rem 4rem;
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
 }
 
 .modalCategory {

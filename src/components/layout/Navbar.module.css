@@ -132,9 +132,19 @@
     background: white;
     min-width: 220px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    padding: 1rem 0;
+    padding: 0.5rem 0;
     z-index: 1001;
-    margin-top: 1rem;
+}
+
+/* Bridge the gap between navLink and dropdownContent to prevent closing on gap hover */
+.dropdownContent::before {
+    content: '';
+    position: absolute;
+    top: -20px;
+    left: 0;
+    width: 100%;
+    height: 20px;
+    background: transparent;
 }
 
 .dropdown:hover .dropdownContent {

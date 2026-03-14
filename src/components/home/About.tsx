@@ -19,7 +19,7 @@ export default function About() {
                     </Reveal>
                     <Reveal delay={200}>
                         <p className={styles.text}>
-                            At Cherif’s Lifestyle Hub, we believe that a home is more than just a physical space—it is a sanctuary of self-expression. Founded on the principles of luxury minimalism and artistic storytelling, our studio blends contemporary interior architecture with hand-curated art collections.
+                            At CherifLifestyle, we believe that a home is more than just a physical space—it is a sanctuary of self-expression. Founded on the principles of luxury minimalism and artistic storytelling, our studio blends contemporary interior architecture with hand-curated art collections.
                         </p>
                         <p className={styles.text}>
                             Our mission is to create timeless, personal, and inspiring environments that reflect the unique lifestyle of our clients. From high-end residential styling to bespoke art curation, we handle every detail with meticulous care and an eye for artistic brilliance.

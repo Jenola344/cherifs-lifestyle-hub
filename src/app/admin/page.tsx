@@ -26,7 +26,7 @@ export default function AdminDashboard() {
         category: '',
         excerpt: '',
         content: '',
-        author: "Cherif's Editorial"
+        author: "Cheriflifestyle Editorial"
     });
     const [blogImage, setBlogImage] = useState<File | null>(null);
 
@@ -181,7 +181,7 @@ export default function AdminDashboard() {
             if (res.ok) {
                 setShowBlogModal(false);
                 setEditingBlog(null);
-                setNewPost({ title: '', category: '', excerpt: '', content: '', author: "Cherif's Editorial" });
+                setNewPost({ title: '', category: '', excerpt: '', content: '', author: "Cheriflifestyle Editorial" });
                 setBlogImage(null);
                 fetchAllData();
             }
@@ -244,7 +244,7 @@ export default function AdminDashboard() {
         return (
             <main className={styles.loginContainer}>
                 <div className={styles.loginBox}>
-                    <h1>Cherif Admin</h1>
+                    <h1>Cheriflifestyle Admin</h1>
                     <form onSubmit={handleLogin}>
                         <input type="password" placeholder="Access Code" value={password} onChange={(e) => setPassword(e.target.value)} className={styles.input} />
                         <Button type="submit" variant="primary" className={styles.loginBtn}>Access Hub</Button>

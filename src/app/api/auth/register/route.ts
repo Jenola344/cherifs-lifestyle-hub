@@ -62,9 +62,9 @@ export async function POST(request: Request) {
             const verifyURL = `${baseUrl}/auth/verify-email?token=${verificationToken}`;
 
             const { error: sendError } = await resend.emails.send({
-                from: process.env.EMAIL_FROM || "Cherif's Lifestyle Hub <noreply@yourdomain.com>",
+                from: process.env.EMAIL_FROM || "CherifLifestyle <noreply@yourdomain.com>",
                 to: email,
-                subject: "Verify your email – Cherif's Lifestyle Hub",
+                subject: "Verify your email – CherifLifestyle",
                 html: `
                     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee;">
                         <h2 style="color: #333;">Welcome, ${userName}!</h2>

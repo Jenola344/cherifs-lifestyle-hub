@@ -23,7 +23,7 @@ export default function Footer() {
                             </div>
                             <div className={styles.faqItem}>
                                 <h3 className={styles.faqQuestion}>Can I request a custom design?</h3>
-                                <p className={styles.faqAnswer}>Yes, Cherif’s Lifestyle Hub specializes in bespoke interior architecture. Book a consultation to discuss your vision.</p>
+                                <p className={styles.faqAnswer}>Yes, CherifLifestyle specializes in bespoke interior architecture. Book a consultation to discuss your vision.</p>
                             </div>
                             <div className={styles.faqItem}>
                                 <h3 className={styles.faqQuestion}>How do I track my acquisition?</h3>
@@ -33,7 +33,7 @@ export default function Footer() {
                     </div>
 
                     <div className={styles.infoSection}>
-                        <h2 className={styles.branding}>Cherif’s Lifestyle Hub</h2>
+                        <h2 className={styles.branding}>CherifLifestyle</h2>
                         <div className={styles.contactDetails}>
                             <div className={styles.contactItem}>
                                 <Mail size={18} />
@@ -49,7 +49,7 @@ export default function Footer() {
                             </div>
                             <div className={styles.contactItem}>
                                 <MapPin size={18} />
-                                <span>Lagos / Global Studio</span>
+                                <span>Abuja / Global Studio</span>
                             </div>
                         </div>
 
@@ -69,7 +69,7 @@ export default function Footer() {
                         </div>
 
                         <div className={styles.copyright}>
-                            © {new Date().getFullYear()} Cherif’s Lifestyle Hub. All rights reserved.
+                            © {new Date().getFullYear()} CherifLifestyle. All rights reserved.
                         </div>
                     </div>
                 </div>

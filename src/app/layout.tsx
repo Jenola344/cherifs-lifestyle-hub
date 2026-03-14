@@ -15,9 +15,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'Cherif’s Lifestyle Hub | Luxury Interior Architecture & Art',
-  description: 'Curating timeless interiors, artistic living, and elegant lifestyle spaces. Discover bespoke interior design and hand-curated art collections in Lagos.',
-  keywords: ['Interior Design', 'Lagos Art Gallery', 'Luxury Minimalism', 'Bespoke Furniture', 'Cherif Hub'],
+  title: 'CherifLifestyle | Luxury Interior Architecture & Art',
+  description: 'Curating timeless interiors, artistic living, and elegant lifestyle spaces. Discover bespoke interior design and hand-curated art collections in Abuja.',
+  keywords: ['Interior Design', 'Abuja Art Gallery', 'Luxury Minimalism', 'Bespoke Furniture', 'CherifLifestyle'],
 };
 
 import { CartProvider } from '@/context/CartContext';

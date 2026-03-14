@@ -48,9 +48,9 @@ export async function POST(request: Request) {
 
         // Send via Resend (HTTP API — works on Render, Vercel, anywhere)
         const { error: sendError } = await resend.emails.send({
-            from: process.env.EMAIL_FROM || "Cherif's Lifestyle Hub <noreply@yourdomain.com>",
+            from: process.env.EMAIL_FROM || "CherifLifestyle <noreply@yourdomain.com>",
             to: email,
-            subject: "Reset your password – Cherif's Hub",
+            subject: "Reset your password – CherifLifestyle",
             html: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee;">
                     <h2 style="color: #333;">Password Reset Request</h2>

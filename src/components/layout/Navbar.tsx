@@ -29,7 +29,7 @@ export default function Navbar() {
         <nav className={`${styles.navbar} ${isScrolled ? styles.scrolled : ''}`}>
             <div className={styles.container}>
                 <Link href="/" className={styles.logo}>
-                    Cherif’s Lifestyle Hub
+                    CherifLifestyle
                 </Link>
 
                 {/* Desktop Menu */}

@@ -12,7 +12,7 @@ export default function Hero() {
                     <span className={styles.subtitle}>Art & Interior Design</span>
                 </Reveal>
                 <Reveal delay={200}>
-                    <h1 className={styles.title}>Cherif’s Lifestyle Hub</h1>
+                    <h1 className={styles.title}>CherifLifestyle</h1>
                 </Reveal>
                 <Reveal delay={400}>
                     <p className={styles.tagline}>

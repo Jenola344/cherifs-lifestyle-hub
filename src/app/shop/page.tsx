@@ -26,6 +26,26 @@ export default function Shop() {
 
     useEffect(() => {
         fetchArt();
+        
+        // Handle initial hash filtering
+        const hash = window.location.hash.replace('#', '');
+        if (hash) {
+            // Capitalize first letter to match categories
+            const category = hash.charAt(0).toUpperCase() + hash.slice(1);
+            setFilter(category);
+        }
+
+        // Listen for hash changes
+        const handleHashChange = () => {
+            const newHash = window.location.hash.replace('#', '');
+            if (newHash) {
+                const category = newHash.charAt(0).toUpperCase() + newHash.slice(1);
+                setFilter(category);
+            }
+        };
+
+        window.addEventListener('hashchange', handleHashChange);
+        return () => window.removeEventListener('hashchange', handleHashChange);
     }, []);
 
     const fetchArt = () => {

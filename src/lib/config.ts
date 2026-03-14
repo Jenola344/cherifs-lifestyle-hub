@@ -6,7 +6,7 @@
 
 export const APP_CONFIG = {
     // Branding
-    siteName: "Cherif's Lifestyle Hub",
+    siteName: "CherifLifestyle",
 
     // Support & Concierge
     whatsappNumber: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "2349031103553",

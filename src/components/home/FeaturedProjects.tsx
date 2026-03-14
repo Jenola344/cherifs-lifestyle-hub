@@ -50,7 +50,7 @@ export default function FeaturedProjects() {
                 <div className={styles.grid}>
                     {projects.map((project, index) => (
                         <Reveal key={index} delay={(index % 3) * 100}>
-                            <div className={styles.card}>
+                            <Link href="/shop" className={styles.card}>
                                 <div
                                     className={styles.image}
                                     style={{ backgroundImage: `url(${project.image})` }}
@@ -58,9 +58,9 @@ export default function FeaturedProjects() {
                                 <div className={styles.overlay}>
                                     <span className={styles.category}>{project.category}</span>
                                     <h3 className={styles.projectTitle}>{project.title}</h3>
-                                    <Link href="/shop" className={styles.link}>View Details</Link>
+                                    <span className={styles.link}>View Details</span>
                                 </div>
-                            </div>
+                            </Link>
                         </Reveal>
                     ))}
                 </div>

@@ -134,7 +134,7 @@ export default function ContactPage() {
                                     <MapPin size={24} />
                                     <div>
                                         <h3>Creative Studio</h3>
-                                        <p>Lagos, Nigeria • Global Consultation</p>
+                                        <p>Abuja, Nigeria • Global Consultation</p>
                                     </div>
                                 </div>
                             </div>

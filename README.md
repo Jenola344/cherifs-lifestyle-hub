@@ -1,4 +1,4 @@
-# Cherif's Lifestyle Hub
+# CherifLifestyle
 
 A full-stack e-commerce and portfolio platform for a luxury interior design and art curation business. Built with **Next.js 16**, **MongoDB**, and **NextAuth.js** — featuring an art shop, lifestyle blog, user authentication, admin dashboard, and a WhatsApp-integrated checkout system.
 
@@ -28,7 +28,7 @@ A full-stack e-commerce and portfolio platform for a luxury interior design and 
 
 ## Overview
 
-Cherif's Lifestyle Hub is an elegant web platform built for a Lagos-based luxury interior design and art gallery brand. It allows visitors to browse and acquire curated artworks, read editorial blog posts, and book design consultations. Authenticated users have access to a profile dashboard with order history, saved favourites, and a feedback system.
+CherifLifestyle is an elegant web platform built for an Abuja-based luxury interior design and art gallery brand. It allows visitors to browse and acquire curated artworks, read editorial blog posts, and book design consultations. Authenticated users have access to a profile dashboard with order history, saved favourites, and a feedback system.
 
 The checkout flow is WhatsApp-first: orders are logged to the database and then the user is redirected to a pre-filled WhatsApp message to complete the transaction with the studio concierge.
 
@@ -53,7 +53,7 @@ The checkout flow is WhatsApp-first: orders are logged to the database and then 
 ## Project Structure
 
 ```
-cherifs-lifestyle-hub/
+cheriflifestyle/
 ├── data/                        # JSON flat-file storage (reviews, feedback, legacy)
 │   ├── art.json
 │   ├── blog.json
