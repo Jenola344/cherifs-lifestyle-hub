@@ -71,8 +71,10 @@ export default function Shop() {
             title: selectedArt.title,
             image: selectedArt.image,
             price: selectedArt.price,
-            category: selectedArt.category
-        }, selectedSize, selectedFrame);
+            category: selectedArt.category,
+            size: selectedSize,
+            frame: selectedFrame
+        });
 
         setSelectedArt(null);
         alert(`${selectedArt.title} added to cart!`);

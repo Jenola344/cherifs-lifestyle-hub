@@ -3,6 +3,10 @@ import { requireAuth, requireAdmin } from '@/lib/auth-helpers';
 import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
 
+vi.mock('@/app/api/auth/[...nextauth]/route', () => ({
+    authOptions: {}
+}));
+
 vi.mock('next-auth', () => ({
     getServerSession: vi.fn(),
     default: vi.fn(),
