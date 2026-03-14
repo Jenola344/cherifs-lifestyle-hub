@@ -3,9 +3,7 @@ import dbConnect from '@/lib/mongoose';
 import User from '@/models/User';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
-import { Resend } from 'resend';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+import nodemailer from 'nodemailer';
 
 export async function POST(request: Request) {
     try {
@@ -44,8 +42,16 @@ export async function POST(request: Request) {
         try {
             const verifyURL = `https://cherifs-lifestyle-hub.onrender.com/auth/verify-email?token=${verificationToken}`;
 
-            await resend.emails.send({
-                from: 'onboarding@resend.dev',
+            const transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                    user: process.env.EMAIL_SERVER_USER,
+                    pass: process.env.EMAIL_SERVER_PASSWORD,
+                },
+            });
+
+            const info = await transporter.sendMail({
+                from: `"Cherif's Lifestyle Hub" <${process.env.EMAIL_SERVER_USER}>`,
                 to: email,
                 subject: 'Verify your email – Cherif\'s Lifestyle Hub',
                 html: `
@@ -61,6 +67,7 @@ export async function POST(request: Request) {
                     </div>
                 `
             });
+            console.log('Verification email sent:', info.messageId);
         } catch (mailError) {
             console.error('Mail sending failed:', mailError);
             // We still return 200/success because the user WAS created in the DB.
