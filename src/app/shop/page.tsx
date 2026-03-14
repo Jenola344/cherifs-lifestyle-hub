@@ -6,19 +6,21 @@ import styles from './Shop.module.css';
 import Button from '@/components/ui/Button';
 import Reveal from '@/components/ui/Reveal';
 import { X, Heart, Star, MessageSquare, Send } from 'lucide-react';
+import type { ArtItem, Review } from '@/types';
+import { logger } from '@/lib/logger';
 
 export default function Shop() {
     const { addToCart } = useCart();
     const { user, toggleFavorite, isAuthenticated } = useUser();
-    const [artCollection, setArtCollection] = useState<any[]>([]);
+    const [artCollection, setArtCollection] = useState<ArtItem[]>([]);
     const [filter, setFilter] = useState('All');
-    const [selectedArt, setSelectedArt] = useState<any | null>(null);
+    const [selectedArt, setSelectedArt] = useState<ArtItem | null>(null);
     const [selectedSize, setSelectedSize] = useState('');
     const [selectedFrame, setSelectedFrame] = useState<'Framed' | 'Frameless'>('Frameless');
     const [loading, setLoading] = useState(true);
 
     // Reviews state
-    const [reviews, setReviews] = useState<any[]>([]);
+    const [reviews, setReviews] = useState<Review[]>([]);
     const [newReview, setNewReview] = useState({ rating: 5, comment: '' });
     const [isSubmittingReview, setIsSubmittingReview] = useState(false);
 
@@ -44,7 +46,8 @@ export default function Shop() {
     const fetchReviews = (artId: string) => {
         fetch(`/api/reviews?artId=${artId}`)
             .then(res => res.json())
-            .then(setReviews);
+            .then((data: Review[]) => setReviews(data))
+            .catch(err => logger.error('Fetch reviews failed', err));
     };
 
     const categories = ['All', ...Array.from(new Set(artCollection.map(item => item.category)))];
@@ -53,7 +56,7 @@ export default function Shop() {
         ? artCollection
         : artCollection.filter(item => item.category === filter);
 
-    const handleOpenArt = (item: any) => {
+    const handleOpenArt = (item: ArtItem) => {
         setSelectedArt(item);
         setSelectedSize(item.sizes?.[0] || '');
         setSelectedFrame('Frameless');
@@ -86,7 +89,7 @@ export default function Shop() {
 
     const submitReview = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!isAuthenticated) {
+        if (!isAuthenticated || !selectedArt) {
             alert('Sign in to leave a review');
             return;
         }
@@ -107,7 +110,7 @@ export default function Shop() {
                 setNewReview({ rating: 5, comment: '' });
             }
         } catch (err) {
-            console.error(err);
+            logger.error('Failed to submit review', err);
         } finally {
             setIsSubmittingReview(false);
         }
@@ -137,7 +140,7 @@ export default function Shop() {
             </div>
 
             <div className={styles.grid}>
-                {filteredItems.map((item, index) => {
+                {filteredItems.map((item: ArtItem, index) => {
                     const isFav = user?.favorites?.includes(item.id);
                     return (
                         <Reveal key={item.id} delay={(index % 3) * 100}>
@@ -226,7 +229,7 @@ export default function Shop() {
                                     <div className={styles.reviewSection}>
                                         <h3>Artistic Critiques ({reviews.length})</h3>
                                         <div className={styles.reviewsList}>
-                                            {reviews.map(r => (
+                                            {reviews.map((r: Review) => (
                                                 <div key={r.id} className={styles.reviewCard}>
                                                     <div className={styles.reviewHeader}>
                                                         <strong>{r.userName}</strong>

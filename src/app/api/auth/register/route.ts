@@ -90,7 +90,7 @@ export async function POST(request: Request) {
             logger.info(`Verification email sent: ${info.messageId}`);
         } catch (mailError) {
             // Log internally only — never expose SMTP error details to the client.
-            console.error('[Register] Verification email failed to send:', mailError);
+            logger.error('[Register] Verification email failed to send', mailError);
             // User was created successfully in DB. Warn them without leaking internals.
             return NextResponse.json({
                 message: 'Account created successfully.',

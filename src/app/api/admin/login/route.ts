@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { rateLimit, getClientIp } from '@/lib/rate-limit';
+import { logger } from '@/lib/logger';
 
 /**
  * Admin Login Route
@@ -31,7 +32,7 @@ export async function POST(request: Request) {
 
         const adminPassword = process.env.ADMIN_PASSWORD;
         if (!adminPassword) {
-            console.error('[Admin Login] ADMIN_PASSWORD environment variable is not set.');
+            logger.error('[Admin Login] ADMIN_PASSWORD environment variable is not set.');
             return NextResponse.json({ success: false, message: 'Server misconfigured' }, { status: 500 });
         }
 

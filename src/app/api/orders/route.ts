@@ -4,6 +4,7 @@ import Order from '@/models/Order';
 import Art from '@/models/Art';
 import { requireAdmin, requireAuth } from '@/lib/auth-helpers';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
 
 /**
  * Zod schema — validated before any DB interaction
@@ -41,12 +42,13 @@ export async function GET() {
     try {
         await dbConnect();
         const orders = await Order.find({}).sort({ createdAt: -1 }).lean();
-        const formattedOrders = orders.map((o: any) => ({
+        const formattedOrders = orders.map((o) => ({
             ...o,
-            id: o._id.toString()
+            id: (o as any)._id.toString()
         }));
         return NextResponse.json(formattedOrders);
-    } catch {
+    } catch (error) {
+        logger.error('Failed to fetch orders', error);
         return NextResponse.json({ error: 'Failed to fetch orders' }, { status: 500 });
     }
 }
@@ -113,7 +115,8 @@ export async function POST(request: Request) {
             ...newOrder.toObject(),
             id: newOrder._id.toString()
         });
-    } catch {
+    } catch (error) {
+        logger.error('Failed to create order', error);
         return NextResponse.json({ error: 'Failed to create order' }, { status: 500 });
     }
 }
@@ -153,14 +156,15 @@ export async function PUT(request: Request) {
             });
         } catch (e) {
             // Notification failure is non-critical — log but don't fail the request
-            console.error('[Orders] Failed to create status notification:', e);
+            logger.error('[Orders] Failed to create status notification', e);
         }
 
         return NextResponse.json({
             ...updatedOrder.toObject(),
             id: updatedOrder._id.toString()
         });
-    } catch {
+    } catch (error) {
+        logger.error('Failed to update order', error);
         return NextResponse.json({ error: 'Failed to update order' }, { status: 500 });
     }
 }

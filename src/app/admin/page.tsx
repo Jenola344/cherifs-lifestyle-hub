@@ -3,22 +3,24 @@ import { useState, useEffect } from 'react';
 import Button from '@/components/ui/Button';
 import { CheckCircle, Clock, History, LayoutDashboard, LogOut, Users, Palette, ShoppingCart, Plus, Trash2, Edit, MessageSquare, Star, BookOpen, X } from 'lucide-react';
 import styles from './Admin.module.css';
+import type { Order, ArtItem, BlogPost, Feedback, OrderItem } from '@/types';
+import { logger } from '@/lib/logger';
 
 export default function AdminDashboard() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [password, setPassword] = useState('');
-    const [orders, setOrders] = useState<any[]>([]);
-    const [users, setUsers] = useState<any[]>([]);
-    const [art, setArt] = useState<any[]>([]);
-    const [blog, setBlog] = useState<any[]>([]);
-    const [feedback, setFeedback] = useState<any[]>([]);
+    const [orders, setOrders] = useState<Order[]>([]);
+    const [users, setUsers] = useState<{ id: string; name: string; email: string; createdAt: string; role: string }[]>([]);
+    const [art, setArt] = useState<ArtItem[]>([]);
+    const [blog, setBlog] = useState<BlogPost[]>([]);
+    const [feedback, setFeedback] = useState<Feedback[]>([]);
     const [loading, setLoading] = useState(false);
     const [activeTab, setActiveTab] = useState<'orders' | 'users' | 'art' | 'blog' | 'feedback' | 'broadcast'>('orders');
     const [view, setView] = useState<'all' | 'pending' | 'completed'>('all');
 
     // Blog form state
     const [showBlogModal, setShowBlogModal] = useState(false);
-    const [editingBlog, setEditingBlog] = useState<any | null>(null);
+    const [editingBlog, setEditingBlog] = useState<BlogPost | null>(null);
     const [newPost, setNewPost] = useState({
         title: '',
         category: '',
@@ -30,7 +32,7 @@ export default function AdminDashboard() {
 
     // Art form state
     const [showArtModal, setShowArtModal] = useState(false);
-    const [editingArt, setEditingArt] = useState<any | null>(null);
+    const [editingArt, setEditingArt] = useState<ArtItem | null>(null);
     const [newArt, setNewArt] = useState({
         title: '',
         artist: '',
@@ -41,7 +43,7 @@ export default function AdminDashboard() {
         status: 'available'
     });
     const [imageFile, setImageFile] = useState<File | null>(null);
-    const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
+    const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const [broadcast, setBroadcast] = useState({ title: '', message: '', type: 'general' });
 
     useEffect(() => {
@@ -67,7 +69,7 @@ export default function AdminDashboard() {
             if (blogRes.ok) setBlog(await blogRes.json());
             if (feedbackRes.ok) setFeedback(await feedbackRes.json());
         } catch (error) {
-            console.error('Failed to fetch data');
+            logger.error('Failed to fetch data', error);
         } finally {
             setLoading(false);
         }
@@ -129,7 +131,7 @@ export default function AdminDashboard() {
             formData.append('image', imageFile);
         }
         if (editingArt) {
-            formData.append('id', editingArt.id);
+            formData.append('id', (editingArt as any)._id?.toString() ?? editingArt.id);
         }
 
         try {
@@ -194,7 +196,7 @@ export default function AdminDashboard() {
         } catch (error) { alert('Delete failed'); }
     };
 
-    const openEditModal = (item: any) => {
+    const openEditModal = (item: ArtItem) => {
         setEditingArt(item);
         setNewArt({
             title: item.title,
@@ -202,13 +204,13 @@ export default function AdminDashboard() {
             price: item.price.toString(),
             category: item.category,
             sizes: item.sizes.join(', '),
-            description: item.description,
+            description: item.description ?? '',
             status: item.status || 'available'
         });
         setShowArtModal(true);
     };
 
-    const openEditBlogModal = (item: any) => {
+    const openEditBlogModal = (item: BlogPost) => {
         setEditingBlog(item);
         setNewPost({
             title: item.title,
@@ -573,7 +575,7 @@ export default function AdminDashboard() {
                             <p>Status: <span className={`${styles.badge} ${styles[selectedOrder.status.toLowerCase()]}`}>{selectedOrder.status}</span></p>
                         </div>
                         <div className={styles.orderItemsList}>
-                            {selectedOrder.items.map((item: any, idx: number) => (
+                            {selectedOrder.items.map((item: OrderItem, idx: number) => (
                                 <div key={idx} className={styles.orderItem}>
                                     <div className={styles.orderItemThumb} style={{ backgroundImage: `url(${item.image})` }} />
                                     <div className={styles.orderItemInfo}>

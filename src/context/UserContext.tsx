@@ -1,14 +1,8 @@
 'use client';
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useSession, signOut } from 'next-auth/react';
-
-interface User {
-    id: string;
-    name: string;
-    email: string;
-    favorites?: string[];
-    role?: string;
-}
+import { logger } from '@/lib/logger';
+import { AppUser as User } from '@/types';
 
 interface UserContextType {
     user: User | null;
@@ -29,11 +23,14 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         if (status === 'authenticated' && session?.user) {
             setUser({
-                id: (session.user as any).id || '',
+                id: session.user.id,
                 name: session.user.name || '',
                 email: session.user.email || '',
-                role: (session.user as any).role || 'user'
-            });
+                role: session.user.role || 'user',
+                favorites: session.user.favorites || [],
+                isVerified: session.user.isVerified || true,
+                createdAt: session.user.createdAt || new Date().toISOString()
+            } as User);
             setLoading(false);
         } else if (status === 'unauthenticated') {
             const savedUser = localStorage.getItem('cherif_user');
@@ -81,7 +78,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
                 }
             }
         } catch (error) {
-            console.error('Failed to toggle favorite');
+            logger.error('Failed to toggle favorite', error);
         }
     };
 

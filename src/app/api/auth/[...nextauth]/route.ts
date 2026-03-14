@@ -79,7 +79,7 @@ export const authOptions: NextAuthOptions = {
         strategy: "jwt",
     },
     callbacks: {
-        async jwt({ token, user }: any) {
+        async jwt({ token, user }: { token: any, user?: any }) {
             if (user) {
                 token.role = user.role || 'user';
                 token.id = user.id;
@@ -87,11 +87,11 @@ export const authOptions: NextAuthOptions = {
             }
             return token;
         },
-        async session({ session, token }: any) {
+        async session({ session, token }: { session: any, token: any }) {
             if (session.user) {
-                (session.user as any).role = token.role;
-                (session.user as any).id = token.id;
-                (session.user as any).createdAt = token.createdAt;
+                session.user.role = token.role;
+                session.user.id = token.id;
+                session.user.createdAt = token.createdAt;
             }
             return session;
         }
@@ -100,7 +100,7 @@ export const authOptions: NextAuthOptions = {
         signIn: '/auth',
     },
     events: {
-        async createUser({ user }: { user: any }) {
+        async createUser({ user }: { user: { id: string } }) {
             // MongoDBAdapter might not set timestamps via driver.
             // Let Mongoose ensure they're there if we re-fetch, but best set it now.
             await dbConnect();

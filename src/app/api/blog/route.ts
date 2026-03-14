@@ -3,18 +3,20 @@ import dbConnect from '@/lib/mongoose';
 import Blog from '@/models/Blog';
 import { uploadToCloudinary } from '@/lib/cloudinary';
 import { requireAdmin } from '@/lib/auth-helpers';
+import { logger } from '@/lib/logger';
 
 export async function GET() {
     try {
         await dbConnect();
         const posts = await Blog.find({}).sort({ createdAt: -1 }).lean();
         // Map _id to id for frontend consistency
-        const formattedPosts = posts.map((post: any) => ({
+        const formattedPosts = posts.map((post) => ({
             ...post,
-            id: post._id.toString()
+            id: (post as any)._id.toString()
         }));
         return NextResponse.json(formattedPosts);
     } catch (error) {
+        logger.error('Failed to fetch posts', error);
         return NextResponse.json({ error: 'Failed to fetch posts' }, { status: 500 });
     }
 }
@@ -55,7 +57,7 @@ export async function POST(request: Request) {
         const postObj = newPost.toObject();
         return NextResponse.json({ ...postObj, id: postObj._id.toString() });
     } catch (error) {
-        console.error('Blog creation error:', error);
+        logger.error('Blog creation error', error);
         return NextResponse.json({ error: 'Failed to create post' }, { status: 500 });
     }
 }
@@ -91,6 +93,7 @@ export async function PUT(request: Request) {
 
         return NextResponse.json({ ...(updatedPost as any), id: (updatedPost as any)._id.toString() });
     } catch (error) {
+        logger.error('Failed to update post', error);
         return NextResponse.json({ error: 'Failed to update post' }, { status: 500 });
     }
 }
@@ -109,6 +112,7 @@ export async function DELETE(request: Request) {
         await Blog.findByIdAndDelete(id);
         return NextResponse.json({ success: true });
     } catch (error) {
+        logger.error('Failed to delete post', error);
         return NextResponse.json({ error: 'Failed to delete post' }, { status: 500 });
     }
 }

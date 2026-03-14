@@ -5,11 +5,13 @@ import { useRouter } from 'next/navigation';
 import Button from '@/components/ui/Button';
 import { Heart, ShoppingBag, Star, Send, Trash2 } from 'lucide-react';
 import styles from './Profile.module.css';
+import type { Order, ArtItem } from '@/types';
+import { logger } from '@/lib/logger';
 
 export default function ProfilePage() {
     const { user, logout, toggleFavorite, isAuthenticated } = useUser();
-    const [orders, setOrders] = useState<any[]>([]);
-    const [favorites, setFavorites] = useState<any[]>([]);
+    const [orders, setOrders] = useState<Order[]>([]);
+    const [favorites, setFavorites] = useState<ArtItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [activeSubTab, setActiveSubTab] = useState<'orders' | 'favorites'>('orders');
 
@@ -28,24 +30,27 @@ export default function ProfilePage() {
 
         const fetchData = async () => {
             try {
+                // /api/orders/mine — returns only THIS user's orders (server-filtered)
+                // /api/art — public, needed to resolve favorite IDs into full items
                 const [ordersRes, artRes] = await Promise.all([
-                    fetch('/api/orders'),
+                    fetch('/api/orders/mine'),
                     fetch('/api/art')
                 ]);
 
                 if (ordersRes.ok) {
-                    const allOrders = await ordersRes.json();
-                    const userOrders = allOrders.filter((o: any) => o.userEmail === user?.email);
-                    setOrders(userOrders.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+                    const userOrders: Order[] = await ordersRes.json();
+                    setOrders(userOrders);
                 }
 
                 if (artRes.ok) {
-                    const allArt = await artRes.json();
-                    const userFavs = allArt.filter((item: any) => user?.favorites?.includes(item.id));
+                    const allArt: ArtItem[] = await artRes.json();
+                    const userFavs = allArt.filter(item =>
+                        user?.favorites?.includes((item as any)._id?.toString() ?? item.id)
+                    );
                     setFavorites(userFavs);
                 }
             } catch (error) {
-                console.error('Failed to fetch data');
+                logger.error('Failed to fetch profile data', error);
             } finally {
                 setLoading(false);
             }
@@ -73,7 +78,7 @@ export default function ProfilePage() {
                 setFeedback({ rating: 5, message: '' });
             }
         } catch (err) {
-            console.error(err);
+            logger.error('Failed to submit feedback', err);
         } finally {
             setIsSubmittingFeedback(false);
         }
@@ -120,7 +125,7 @@ export default function ProfilePage() {
                                 </div>
                             ) : (
                                 <div className={styles.orderList}>
-                                    {orders.map(order => (
+                                    {orders.map((order: Order) => (
                                         <div key={order.id} className={styles.orderCard}>
                                             <div className={styles.orderHeader}>
                                                 <span>Order #{order.id.slice(0, 8)}</span>
@@ -129,7 +134,7 @@ export default function ProfilePage() {
                                                 </span>
                                             </div>
                                             <div className={styles.orderItems}>
-                                                {order.items.map((item: any, idx: number) => (
+                                                {order.items.map((item, idx: number) => (
                                                     <div key={idx} className={styles.item}>
                                                         <span>{item.title} (x{item.quantity})</span>
                                                         <span>₦{item.price.toLocaleString()}</span>
@@ -157,7 +162,7 @@ export default function ProfilePage() {
                                 </div>
                             ) : (
                                 <div className={styles.favGrid}>
-                                    {favorites.map(item => (
+                                    {favorites.map((item: ArtItem) => (
                                         <div key={item.id} className={styles.favCard} onClick={() => router.push(`/shop`)}>
                                             <div className={styles.favImg} style={{ backgroundImage: `url(${item.image})` }} />
                                             <div className={styles.favInfo}>

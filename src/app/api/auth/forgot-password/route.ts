@@ -3,8 +3,19 @@ import dbConnect from '@/lib/mongoose';
 import User from '@/models/User';
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
+import { rateLimit, getClientIp } from '@/lib/rate-limit';
+import { logger } from '@/lib/logger';
 
 export async function POST(request: Request) {
+    // Rate limit: 3 password reset requests per IP per 15 minutes
+    const ip = getClientIp(request);
+    if (!rateLimit(ip, 3, 15 * 60_000)) {
+        return NextResponse.json(
+            { error: 'Too many requests. Please try again later.' },
+            { status: 429 }
+        );
+    }
+ 
     try {
         await dbConnect();
         const { email } = await request.json();
@@ -57,7 +68,7 @@ export async function POST(request: Request) {
 
         return NextResponse.json({ message: 'If an account with that email exists, a password reset link has been sent.' });
     } catch (error: any) {
-        console.error('Forgot password error:', error);
+        logger.error('Forgot password error', error);
         return NextResponse.json({ error: 'Failed to process request' }, { status: 500 });
     }
 }

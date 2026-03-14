@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongoose';
 import User from '@/models/User';
+import { logger } from '@/lib/logger';
 
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
@@ -32,7 +33,7 @@ export async function GET(request: Request) {
         // Redirect to login with verified flag
         return NextResponse.redirect(new URL('/auth?verified=true', request.url));
     } catch (error) {
-        console.error('Email verification error:', error);
+        logger.error('Email verification error', error);
         return NextResponse.redirect(new URL('/auth?error=server_error', request.url));
     }
 }

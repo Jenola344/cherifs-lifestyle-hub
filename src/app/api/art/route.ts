@@ -3,6 +3,7 @@ import dbConnect from '@/lib/mongoose';
 import Art from '@/models/Art';
 import { uploadToCloudinary } from '@/lib/cloudinary';
 import { requireAdmin } from '@/lib/auth-helpers';
+import { logger } from '@/lib/logger';
 
 /**
  * GET /api/art — Public. Returns all artworks.
@@ -12,7 +13,8 @@ export async function GET() {
         await dbConnect();
         const art = await Art.find({}).sort({ createdAt: -1 });
         return NextResponse.json(art);
-    } catch {
+    } catch (error) {
+        logger.error('Failed to fetch art', error);
         return NextResponse.json({ error: 'Failed to fetch art' }, { status: 500 });
     }
 }
@@ -45,7 +47,7 @@ export async function POST(request: Request) {
             const bytes = await imageFile.arrayBuffer();
             const buffer = Buffer.from(bytes);
             const base64Image = `data:${imageFile.type};base64,${buffer.toString('base64')}`;
-            const result: any = await uploadToCloudinary(base64Image, 'art-collection');
+            const result = await uploadToCloudinary(base64Image, 'art-collection');
             imageUrl = result.secure_url;
         } else {
             imageUrl = (formData.get('imageUrl') as string) || '';
@@ -73,12 +75,12 @@ export async function POST(request: Request) {
                 link: '/shop'
             });
         } catch (e) {
-            console.error('[Art POST] Notification failed:', e);
+            logger.error('[Art POST] Notification failed', e);
         }
 
         return NextResponse.json(newItem);
     } catch (error) {
-        console.error('[Art POST] Error saving art:', error);
+        logger.error('[Art POST] Error saving art', error);
         return NextResponse.json({ error: 'Failed to save art' }, { status: 500 });
     }
 }
@@ -119,7 +121,7 @@ export async function PUT(request: Request) {
             const bytes = await imageFile.arrayBuffer();
             const buffer = Buffer.from(bytes);
             const base64Image = `data:${imageFile.type};base64,${buffer.toString('base64')}`;
-            const result: any = await uploadToCloudinary(base64Image, 'art-collection');
+            const result = await uploadToCloudinary(base64Image, 'art-collection');
             updateData.image = result.secure_url;
         }
 
@@ -127,7 +129,8 @@ export async function PUT(request: Request) {
         if (!updatedItem) return NextResponse.json({ error: 'Art not found' }, { status: 404 });
 
         return NextResponse.json(updatedItem);
-    } catch {
+    } catch (error) {
+        logger.error('Failed to update art', error);
         return NextResponse.json({ error: 'Failed to update art' }, { status: 500 });
     }
 }
@@ -148,7 +151,8 @@ export async function DELETE(request: Request) {
 
         await Art.findByIdAndDelete(id);
         return NextResponse.json({ success: true });
-    } catch {
+    } catch (error) {
+        logger.error('Failed to delete art', error);
         return NextResponse.json({ error: 'Failed to delete art' }, { status: 500 });
     }
 }

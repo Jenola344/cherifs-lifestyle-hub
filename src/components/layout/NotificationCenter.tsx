@@ -4,11 +4,13 @@ import { Bell, X, Info, Tag, Package, Star } from 'lucide-react';
 import { useUser } from '@/context/UserContext';
 import styles from './NotificationCenter.module.css';
 import Link from 'next/link';
+import type { AppNotification as Notification } from '@/types';
+import { logger } from '@/lib/logger';
 
 export default function NotificationCenter() {
     const { user, isAuthenticated } = useUser();
     const [isOpen, setIsOpen] = useState(false);
-    const [notifications, setNotifications] = useState<any[]>([]);
+    const [notifications, setNotifications] = useState<Notification[]>([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -36,11 +38,11 @@ export default function NotificationCenter() {
             if (res.ok) {
                 const data = await res.json();
                 setNotifications(data);
-                const unread = data.filter((n: any) => !n.readBy?.includes(user?.id)).length;
+                const unread = data.filter((n: Notification) => !n.readBy?.includes(user?.id || '')).length;
                 setUnreadCount(unread);
             }
         } catch (error) {
-            console.error('Fetch notifications failed', error);
+            logger.error('Fetch notifications failed', error);
         }
     };
 
@@ -55,7 +57,7 @@ export default function NotificationCenter() {
                 fetchNotifications();
             }
         } catch (error) {
-            console.error('Mark as read failed', error);
+            logger.error('Mark as read failed', error);
         }
     };
 
@@ -92,12 +94,12 @@ export default function NotificationCenter() {
                                 <p>No notifications yet.</p>
                             </div>
                         ) : (
-                            notifications.map((n: any) => (
+                            notifications.map((n: Notification) => (
                                 <div
                                     key={n.id}
-                                    className={`${styles.item} ${!n.readBy?.includes(user?.id) ? styles.unread : ''}`}
+                                    className={`${styles.item} ${!n.readBy?.includes(user?.id || '') ? styles.unread : ''}`}
                                     onClick={() => {
-                                        if (!n.readBy?.includes(user?.id)) markAsRead(n.id);
+                                        if (!n.readBy?.includes(user?.id || '')) markAsRead(n.id);
                                         if (n.link) setIsOpen(false);
                                     }}
                                 >

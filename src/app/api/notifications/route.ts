@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongoose';
 import Notification from '@/models/Notification';
 import { requireAdmin, requireAuth } from '@/lib/auth-helpers';
+import { logger } from '@/lib/logger';
 
 /**
  * GET /api/notifications — Requires auth. Returns notifications for the current user.
@@ -28,7 +29,8 @@ export async function GET(request: Request) {
         }));
 
         return NextResponse.json(formatted);
-    } catch {
+    } catch (error) {
+        logger.error('Failed to fetch notifications', error);
         return NextResponse.json({ error: 'Failed to fetch notifications' }, { status: 500 });
     }
 }
@@ -45,7 +47,8 @@ export async function POST(request: Request) {
         const body = await request.json();
         const notification = await Notification.create(body);
         return NextResponse.json(notification);
-    } catch {
+    } catch (error) {
+        logger.error('Failed to create notification', error);
         return NextResponse.json({ error: 'Failed to create notification' }, { status: 500 });
     }
 }
@@ -79,7 +82,8 @@ export async function PUT(request: Request) {
         }
 
         return NextResponse.json({ success: true });
-    } catch {
+    } catch (error) {
+        logger.error('Failed to update notification', error);
         return NextResponse.json({ error: 'Failed to update notification' }, { status: 500 });
     }
 }
