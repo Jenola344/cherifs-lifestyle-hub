@@ -40,12 +40,16 @@ export async function POST(request: Request) {
 
         // Send Email
         const transporter = nodemailer.createTransport({
-            host: process.env.EMAIL_SERVER_HOST,
-            port: Number(process.env.EMAIL_SERVER_PORT),
+            host: process.env.EMAIL_SERVER_HOST || 'smtp.gmail.com',
+            port: Number(process.env.EMAIL_SERVER_PORT) || 465,
+            secure: process.env.EMAIL_SERVER_PORT === '465',
             auth: {
                 user: process.env.EMAIL_SERVER_USER,
                 pass: process.env.EMAIL_SERVER_PASSWORD,
             },
+            connectionTimeout: 10000,
+            greetingTimeout: 10000,
+            socketTimeout: 10000,
         });
 
         const urlObj = new URL(request.url);

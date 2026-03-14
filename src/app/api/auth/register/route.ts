@@ -60,18 +60,21 @@ export async function POST(request: Request) {
             const verifyURL = `${baseUrl}/auth/verify-email?token=${verificationToken}`;
 
             const transporter = nodemailer.createTransport({
-                service: 'gmail',
-                port: 587,
-                host: 'smtp.gmail.com',
-                secure: false,
+                host: process.env.EMAIL_SERVER_HOST || 'smtp.gmail.com',
+                port: Number(process.env.EMAIL_SERVER_PORT) || 465,
+                secure: process.env.EMAIL_SERVER_PORT === '465', // true for 465, false for others
                 auth: {
                     user: process.env.EMAIL_SERVER_USER,
                     pass: process.env.EMAIL_SERVER_PASSWORD,
                 },
+                // Add timeouts to prevent hanging on Render
+                connectionTimeout: 10000, 
+                greetingTimeout: 10000,
+                socketTimeout: 10000,
             });
 
             const info = await transporter.sendMail({
-                from: `"Cherif's Lifestyle Hub" <${process.env.EMAIL_SERVER_USER}>`,
+                from: process.env.EMAIL_FROM || `"Cherif's Lifestyle Hub" <${process.env.EMAIL_SERVER_USER}>`,
                 to: email,
                 subject: 'Verify your email – Cherif\'s Lifestyle Hub',
                 html: `
