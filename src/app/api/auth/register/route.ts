@@ -3,9 +3,11 @@ import dbConnect from '@/lib/mongoose';
 import User from '@/models/User';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import { rateLimit, getClientIp } from '@/lib/rate-limit';
 import { logger } from '@/lib/logger';
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(request: Request) {
     // Rate limit: 5 registration attempts per IP per 10 minutes
@@ -44,52 +46,8 @@ export async function POST(request: Request) {
         const verificationToken = crypto.randomBytes(32).toString('hex');
         const verificationTokenExpiry = new Date(Date.now() + 1000 * 60 * 60); // 1 hour
 
-        // Send Verification Email
-        try {
-            const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
-            const verifyURL = `${baseUrl}/auth/verify-email?token=${verificationToken}`;
-
-            const transporter = nodemailer.createTransport({
-                host: process.env.EMAIL_SERVER_HOST || 'smtp.gmail.com',
-                port: Number(process.env.EMAIL_SERVER_PORT) || 465,
-                secure: process.env.EMAIL_SERVER_PORT === '465', // true for 465, false for others
-                auth: {
-                    user: process.env.EMAIL_SERVER_USER,
-                    pass: process.env.EMAIL_SERVER_PASSWORD,
-                },
-            });
-            
-            const info = await transporter.sendMail({
-                from: process.env.EMAIL_FROM || `"Cherif's Lifestyle Hub" <${process.env.EMAIL_SERVER_USER}>`,
-                to: email,
-                subject: 'Verify your email – Cherif\'s Lifestyle Hub',
-                html: `
-                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee;">
-                        <h2 style="color: #333;">Welcome, ${userName}!</h2>
-                        <p>Click the button below to verify your email address.</p>
-                        <a href="${verifyURL}" 
-                           style="display: inline-block; background: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 4px;">
-                          Verify Email
-                        </a>
-                        <p style="margin-top: 20px;">This link expires in <strong>1 hour</strong>.</p>
-                        <p style="font-size: 12px; color: #666;">If you didn't create this account, ignore this email.</p>
-                    </div>
-                `
-            });
-            logger.info(`Verification email sent: ${info.messageId}`);
-        } catch (mailError) {
-            console.log("mailError: ", mailError);
-            // Log internally only — never expose SMTP error details to the client.
-            logger.error('[Register] Verification email failed to send', mailError);
-            // User was created successfully in DB. Warn them without leaking internals.
-            return NextResponse.json({
-                message: 'Account created successfully.',
-                warning: 'We could not send the verification email right now. Please use "Resend Verification" on the login page.'
-            });
-        }
-
-        // Create user
-        const user = await User.create({
+        // Create user first so we don't orphan the record if email fails
+        await User.create({
             name: userName,
             email,
             password: hashedPassword,
@@ -98,9 +56,49 @@ export async function POST(request: Request) {
             isVerified: false
         });
 
+        // Send Verification Email via Resend (HTTP API — works on Render)
+        try {
+            const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+            const verifyURL = `${baseUrl}/auth/verify-email?token=${verificationToken}`;
+
+            const { error: sendError } = await resend.emails.send({
+                from: process.env.EMAIL_FROM || "Cherif's Lifestyle Hub <noreply@yourdomain.com>",
+                to: email,
+                subject: "Verify your email – Cherif's Lifestyle Hub",
+                html: `
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee;">
+                        <h2 style="color: #333;">Welcome, ${userName}!</h2>
+                        <p>Click the button below to verify your email address.</p>
+                        <a href="${verifyURL}"
+                           style="display: inline-block; background: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 4px;">
+                          Verify Email
+                        </a>
+                        <p style="margin-top: 20px;">This link expires in <strong>1 hour</strong>.</p>
+                        <p style="font-size: 12px; color: #666;">If you didn't create this account, ignore this email.</p>
+                    </div>
+                `,
+            });
+
+            if (sendError) {
+                // Log internally — never expose Resend error details to the client
+                logger.error('[Register] Resend email error', sendError);
+                return NextResponse.json({
+                    message: 'Account created successfully.',
+                    warning: 'We could not send the verification email right now. Please use "Resend Verification" on the login page.'
+                });
+            }
+
+            logger.info(`Verification email sent to ${email}`);
+        } catch (mailError) {
+            logger.error('[Register] Verification email failed to send', mailError);
+            return NextResponse.json({
+                message: 'Account created successfully.',
+                warning: 'We could not send the verification email right now. Please use "Resend Verification" on the login page.'
+            });
+        }
+
         return NextResponse.json({ message: 'User registered. Please check your email for verification.' });
     } catch (error: any) {
-        console.log("registration error: ", error);
         logger.error('Registration error:', error);
         return NextResponse.json({ error: 'Registration failed' }, { status: 500 });
     }

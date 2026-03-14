@@ -2,9 +2,11 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongoose';
 import User from '@/models/User';
 import crypto from 'crypto';
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import { rateLimit, getClientIp } from '@/lib/rate-limit';
 import { logger } from '@/lib/logger';
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(request: Request) {
     // Rate limit: 3 password reset requests per IP per 15 minutes
@@ -15,7 +17,7 @@ export async function POST(request: Request) {
             { status: 429 }
         );
     }
- 
+
     try {
         await dbConnect();
         const { email } = await request.json();
@@ -25,9 +27,11 @@ export async function POST(request: Request) {
         }
 
         const user = await User.findOne({ email });
-        // Don't reveal if user exists to prevent email enumeration
+        // Don't reveal if user exists — prevents email enumeration
         if (!user) {
-            return NextResponse.json({ message: 'If an account with that email exists, a password reset link has been sent.' });
+            return NextResponse.json({
+                message: 'If an account with that email exists, a password reset link has been sent.'
+            });
         }
 
         // Generate token and expiry (1 hour)
@@ -38,25 +42,15 @@ export async function POST(request: Request) {
         user.resetTokenExpiry = resetTokenExpiry;
         await user.save();
 
-        // Send Email
-        const transporter = nodemailer.createTransport({
-            host: process.env.EMAIL_SERVER_HOST || 'smtp.gmail.com',
-            port: Number(process.env.EMAIL_SERVER_PORT) || 465,
-            secure: process.env.EMAIL_SERVER_PORT === '465',
-            auth: {
-                user: process.env.EMAIL_SERVER_USER,
-                pass: process.env.EMAIL_SERVER_PASSWORD,
-            },
-        });
+        // Build reset URL using NEXTAUTH_URL — never hardcode the domain
+        const appUrl = process.env.NEXTAUTH_URL || new URL(request.url).origin;
+        const resetUrl = `${appUrl}/auth/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`;
 
-        const urlObj = new URL(request.url);
-        const appUrl = process.env.NEXTAUTH_URL || urlObj.origin;
-        const resetUrl = `${appUrl}/auth/reset-password?token=${resetToken}&email=${email}`;
-
-        await transporter.sendMail({
-            from: process.env.EMAIL_FROM,
+        // Send via Resend (HTTP API — works on Render, Vercel, anywhere)
+        const { error: sendError } = await resend.emails.send({
+            from: process.env.EMAIL_FROM || "Cherif's Lifestyle Hub <noreply@yourdomain.com>",
             to: email,
-            subject: 'Reset your password - Cherif\'s Hub',
+            subject: "Reset your password – Cherif's Hub",
             html: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee;">
                     <h2 style="color: #333;">Password Reset Request</h2>
@@ -67,7 +61,14 @@ export async function POST(request: Request) {
             `,
         });
 
-        return NextResponse.json({ message: 'If an account with that email exists, a password reset link has been sent.' });
+        if (sendError) {
+            logger.error('[ForgotPassword] Resend error', sendError);
+            // Still return a generic success — don't leak send failures
+        }
+
+        return NextResponse.json({
+            message: 'If an account with that email exists, a password reset link has been sent.'
+        });
     } catch (error: any) {
         logger.error('Forgot password error', error);
         return NextResponse.json({ error: 'Failed to process request' }, { status: 500 });
