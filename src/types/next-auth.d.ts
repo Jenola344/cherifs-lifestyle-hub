@@ -12,8 +12,8 @@ declare module "next-auth" {
   }
 
   interface User {
-    id: string;
-    role: string;
+    id?: string;
+    role?: string;
     favorites?: string[];
     isVerified?: boolean;
     createdAt?: string | Date;

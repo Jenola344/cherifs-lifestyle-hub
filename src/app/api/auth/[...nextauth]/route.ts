@@ -15,7 +15,7 @@ const useAdapter = !!process.env.MONGODB_URI;
 export const authOptions: NextAuthOptions = {
     // Only attach the adapter if we have a connection string.
     // This prevents the MongoDB library from trying to initialize during build.
-    ...(useAdapter ? { adapter: MongoDBAdapter(clientPromise) } : {}),
+    ...(useAdapter ? { adapter: MongoDBAdapter(clientPromise) as any } : {}),
     providers: [
         GoogleProvider({
             clientId: process.env.GOOGLE_CLIENT_ID || "",
@@ -100,7 +100,7 @@ export const authOptions: NextAuthOptions = {
         signIn: '/auth',
     },
     events: {
-        async createUser({ user }: { user: { id: string } }) {
+        async createUser({ user }: any) {
             // MongoDBAdapter might not set timestamps via driver.
             // Let Mongoose ensure they're there if we re-fetch, but best set it now.
             await dbConnect();
