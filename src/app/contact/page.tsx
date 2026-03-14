@@ -53,8 +53,9 @@ export default function ContactPage() {
                             <form onSubmit={handleSubmit} className={styles.form}>
                                 <div className={styles.row}>
                                     <div className={styles.group}>
-                                        <label>Full Name</label>
+                                        <label htmlFor="name">Full Name</label>
                                         <input
+                                            id="name"
                                             name="name"
                                             type="text"
                                             placeholder="John Doe"
@@ -64,8 +65,9 @@ export default function ContactPage() {
                                         />
                                     </div>
                                     <div className={styles.group}>
-                                        <label>Email Address</label>
+                                        <label htmlFor="email">Email Address</label>
                                         <input
+                                            id="email"
                                             name="email"
                                             type="email"
                                             placeholder="hello@example.com"

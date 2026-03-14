@@ -18,7 +18,7 @@ export interface CartItem extends Product {
 
 interface CartContextType {
     cart: CartItem[];
-    addToCart: (product: Product, size?: string, frame?: 'Framed' | 'Frameless') => void;
+    addToCart: (item: Product & { size?: string, frame?: 'Framed' | 'Frameless' }) => void;
     removeFromCart: (cartId: string) => void;
     clearCart: () => void;
     totalItems: number;
@@ -41,19 +41,19 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem('cherif_cart', JSON.stringify(cart));
     }, [cart]);
 
-    const addToCart = (product: Product, size?: string, frame?: 'Framed' | 'Frameless') => {
+    const addToCart = (item: Product & { size?: string, frame?: 'Framed' | 'Frameless' }) => {
         setCart(prev => {
-            const cartId = `${product.id}-${size}-${frame}`;
-            const existing = prev.find(item => item.cartId === cartId);
+            const cartId = `${item.id}-${item.size}-${item.frame}`;
+            const existing = prev.find(p => p.cartId === cartId);
 
             if (existing) {
-                return prev.map(item =>
-                    item.cartId === cartId
-                        ? { ...item, quantity: item.quantity + 1 }
-                        : item
+                return prev.map(p =>
+                    p.cartId === cartId
+                        ? { ...p, quantity: p.quantity + 1 }
+                        : p
                 );
             }
-            return [...prev, { ...product, quantity: 1, size, frame, cartId }];
+            return [...prev, { ...item, quantity: 1, cartId }];
         });
     };
 
