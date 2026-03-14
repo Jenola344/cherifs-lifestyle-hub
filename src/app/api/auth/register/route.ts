@@ -44,6 +44,9 @@ export async function POST(request: Request) {
 
             const transporter = nodemailer.createTransport({
                 service: 'gmail',
+                port: 587,
+                host: 'smtp.gmail.com',
+                secure: false,
                 auth: {
                     user: process.env.EMAIL_SERVER_USER,
                     pass: process.env.EMAIL_SERVER_PASSWORD,
@@ -73,8 +76,8 @@ export async function POST(request: Request) {
             // We still return 200/success because the user WAS created in the DB.
             // But we warn them that the email might not have arrived.
             return NextResponse.json({
-                message: 'User registered, but verification email could not be sent. Please contact support or try logging in.',
-                warning: 'Mail delivery error'
+                message: mailError,
+                warning: 'User registered but failed to send verification email'
             });
         }
 
