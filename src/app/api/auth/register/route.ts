@@ -3,7 +3,9 @@ import dbConnect from '@/lib/mongoose';
 import User from '@/models/User';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(request: Request) {
     try {
@@ -40,23 +42,24 @@ export async function POST(request: Request) {
 
         // Send Verification Email
         try {
-            const transporter = nodemailer.createTransport({
-                service: 'gmail',
-                auth: {
-                    user: process.env.EMAIL_SERVER_USER,
-                    pass: process.env.EMAIL_SERVER_PASSWORD,
-                },
-            });
-
             const verifyURL = `https://cherifs-lifestyle-hub.onrender.com/auth/verify-email?token=${verificationToken}`;
 
-            await transporter.sendMail({
-                from: process.env.EMAIL_FROM,
+            await resend.emails.send({
+                from: 'onboarding@resend.dev',
                 to: email,
-                subject: 'Verify your email',
-                html: `<p>Hi ${userName},</p>
-                       <p>Click the link below to verify your email. It expires in 1 hour.</p>
-                       <a href="${verifyURL}">Verify Email</a>`
+                subject: 'Verify your email – Cherif\'s Lifestyle Hub',
+                html: `
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee;">
+                        <h2 style="color: #333;">Welcome, ${userName}!</h2>
+                        <p>Click the button below to verify your email address.</p>
+                        <a href="${verifyURL}" 
+                           style="display: inline-block; background: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 4px;">
+                          Verify Email
+                        </a>
+                        <p style="margin-top: 20px;">This link expires in <strong>1 hour</strong>.</p>
+                        <p style="font-size: 12px; color: #666;">If you didn't create this account, ignore this email.</p>
+                    </div>
+                `
             });
         } catch (mailError) {
             console.error('Mail sending failed:', mailError);
