@@ -3,26 +3,27 @@ import { MongoClient } from "mongodb";
 const uri = process.env.MONGODB_URI;
 const options = {};
 
-let client: MongoClient;
 let clientPromise: Promise<MongoClient>;
 
 if (!uri) {
-    throw new Error('Please add your Mongo URI to .env.local');
-} else {
-    if (process.env.NODE_ENV === "development") {
-        let globalWithMongo = global as typeof globalThis & {
-            _mongoClientPromise?: Promise<MongoClient>;
-        };
+    // Reject lazily — this won't crash builds, but any route that actually
+    // tries to use the client will get a clear error at runtime.
+    clientPromise = Promise.reject(
+        new Error('MONGODB_URI environment variable is not set. Add it to .env.local.')
+    );
+} else if (process.env.NODE_ENV === "development") {
+    const globalWithMongo = global as typeof globalThis & {
+        _mongoClientPromise?: Promise<MongoClient>;
+    };
 
-        if (!globalWithMongo._mongoClientPromise) {
-            client = new MongoClient(uri, options);
-            globalWithMongo._mongoClientPromise = client.connect();
-        }
-        clientPromise = globalWithMongo._mongoClientPromise;
-    } else {
-        client = new MongoClient(uri, options);
-        clientPromise = client.connect();
+    if (!globalWithMongo._mongoClientPromise) {
+        const client = new MongoClient(uri, options);
+        globalWithMongo._mongoClientPromise = client.connect();
     }
+    clientPromise = globalWithMongo._mongoClientPromise;
+} else {
+    const client = new MongoClient(uri, options);
+    clientPromise = client.connect();
 }
 
 export default clientPromise;

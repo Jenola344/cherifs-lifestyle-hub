@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongoose';
 import Blog from '@/models/Blog';
 import { uploadToCloudinary } from '@/lib/cloudinary';
+import { requireAdmin } from '@/lib/auth-helpers';
 
 export async function GET() {
     try {
@@ -19,6 +20,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+    const { error } = await requireAdmin();
+    if (error) return error;
+
     try {
         await dbConnect();
         const formData = await request.formData();
@@ -57,6 +61,9 @@ export async function POST(request: Request) {
 }
 
 export async function PUT(request: Request) {
+    const { error } = await requireAdmin();
+    if (error) return error;
+
     try {
         await dbConnect();
         const formData = await request.formData();
@@ -89,6 +96,9 @@ export async function PUT(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+    const { error } = await requireAdmin();
+    if (error) return error;
+
     try {
         await dbConnect();
         const { searchParams } = new URL(request.url);

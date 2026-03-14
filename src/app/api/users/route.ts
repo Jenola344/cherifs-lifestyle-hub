@@ -1,15 +1,44 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongoose';
 import User from '@/models/User';
-import { APP_CONFIG } from '@/lib/config';
+import { requireAdmin, requireAuth } from '@/lib/auth-helpers';
 
+/**
+ * GET /api/users — Admin only. Returns all users (passwords excluded).
+ */
+export async function GET() {
+    const { error } = await requireAdmin();
+    if (error) return error;
+
+    try {
+        await dbConnect();
+        const users = await User.find({}, '-password -verificationToken -resetToken');
+        return NextResponse.json(users);
+    } catch {
+        return NextResponse.json({ error: 'Failed to fetch users' }, { status: 500 });
+    }
+}
+
+/**
+ * POST /api/users — Requires auth. Supports toggle-favorite action.
+ * The old plain-text admin login path has been removed — use NextAuth instead.
+ */
 export async function POST(request: Request) {
+    const { error, session } = await requireAuth();
+    if (error) return error;
+
     try {
         await dbConnect();
         const body = await request.json();
-        const { action, email, password, userId, favoriteId } = body;
+        const { action, favoriteId } = body;
 
         if (action === 'toggle-favorite') {
+            // Users can only modify their own favorites
+            const userId = (session!.user as any).id;
+            if (!userId) {
+                return NextResponse.json({ error: 'User ID not found in session' }, { status: 400 });
+            }
+
             const user = await User.findById(userId);
             if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
 
@@ -23,35 +52,11 @@ export async function POST(request: Request) {
             }
 
             await user.save();
-            return NextResponse.json(user);
+            return NextResponse.json({ favorites: user.favorites });
         }
 
-        // Login handled by NextAuth generally, but keep this for backward compatibility if needed
-        if (action === 'login') {
-            const user = await User.findOne({ email });
-            // Fallback for admin access
-            if (!user && email === APP_CONFIG.adminFallback.email && password === APP_CONFIG.adminFallback.password) {
-                return NextResponse.json({
-                    id: 'admin',
-                    name: 'Hub Director',
-                    email: APP_CONFIG.adminFallback.email,
-                    role: 'admin'
-                });
-            }
-        }
-
-        return NextResponse.json({ error: 'Action not supported via this route' }, { status: 400 });
-    } catch (error) {
+        return NextResponse.json({ error: 'Action not supported' }, { status: 400 });
+    } catch {
         return NextResponse.json({ error: 'Server error' }, { status: 500 });
-    }
-}
-
-export async function GET() {
-    try {
-        await dbConnect();
-        const users = await User.find({}, '-password');
-        return NextResponse.json(users);
-    } catch (error) {
-        return NextResponse.json({ error: 'Failed to fetch users' }, { status: 500 });
     }
 }

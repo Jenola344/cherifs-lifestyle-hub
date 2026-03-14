@@ -20,7 +20,9 @@ export const authOptions: NextAuthOptions = {
         GoogleProvider({
             clientId: process.env.GOOGLE_CLIENT_ID || "",
             clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
-            allowDangerousEmailAccountLinking: true,
+            // allowDangerousEmailAccountLinking removed — it is a known account-takeover vector.
+            // If a Google account and a password account share the same email, the user
+            // must sign in with the original method or use the "forgot password" flow.
         }),
         EmailProvider({
             server: {
@@ -106,7 +108,9 @@ export const authOptions: NextAuthOptions = {
             await User.findByIdAndUpdate(user.id, { createdAt: new Date() });
         }
     },
-    secret: process.env.NEXTAUTH_SECRET || "cherif-secret-fallback",
+    // NEXTAUTH_SECRET must be set in the environment. No fallback — a missing secret
+    // means NextAuth will refuse to sign any JWTs, which is the safe failure mode.
+    secret: process.env.NEXTAUTH_SECRET,
 };
 
 const handler = NextAuth(authOptions);

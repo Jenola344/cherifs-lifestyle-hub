@@ -1,32 +1,66 @@
 import { NextResponse } from 'next/server';
-import { v4 as uuidv4 } from 'uuid';
-import { readData, writeData } from '@/lib/db';
+import dbConnect from '@/lib/mongoose';
+import FeedbackModel from '@/models/Feedback';
+import { requireAdmin } from '@/lib/auth-helpers';
+import { rateLimit, getClientIp } from '@/lib/rate-limit';
+import { z } from 'zod';
 
+const CreateFeedbackSchema = z.object({
+    userName: z.string().min(1, 'Name is required').max(100),
+    email: z.string().email().max(200).optional().or(z.literal('')),
+    rating: z.number().int().min(1).max(5),
+    message: z.string().min(1, 'Message is required').max(3000),
+});
+
+/**
+ * GET /api/feedback — Admin only.
+ * Returns all submitted feedback from MongoDB.
+ */
 export async function GET() {
-    const feedback = await readData('feedback.json');
-    return NextResponse.json(feedback);
+    const { error } = await requireAdmin();
+    if (error) return error;
+
+    try {
+        await dbConnect();
+        const feedback = await FeedbackModel.find({}).sort({ createdAt: -1 }).lean();
+        return NextResponse.json(
+            feedback.map((f: any) => ({ ...f, id: f._id.toString() }))
+        );
+    } catch {
+        return NextResponse.json({ error: 'Failed to fetch feedback' }, { status: 500 });
+    }
 }
 
+/**
+ * POST /api/feedback — Public.
+ * Rate limited to 3 submissions per IP per 5 minutes.
+ * Validated with Zod. Persisted to MongoDB.
+ */
 export async function POST(request: Request) {
-    const body = await request.json();
-    const { userName, email, rating, message } = body;
-
-    if (!userName || !rating || !message) {
-        return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    // Rate limit — 3 feedback entries per IP per 5 minutes
+    const ip = getClientIp(request);
+    if (!rateLimit(ip, 3, 5 * 60_000)) {
+        return NextResponse.json(
+            { error: 'Too many submissions. Please try again later.' },
+            { status: 429 }
+        );
     }
 
-    const feedback = await readData('feedback.json');
-    const newFeedback = {
-        id: uuidv4(),
-        userName,
-        email,
-        rating: Number(rating),
-        message,
-        createdAt: new Date().toISOString()
-    };
+    try {
+        await dbConnect();
 
-    feedback.push(newFeedback);
-    await writeData('feedback.json', feedback);
+        const body = await request.json();
+        const parsed = CreateFeedbackSchema.safeParse(body);
+        if (!parsed.success) {
+            return NextResponse.json(
+                { error: 'Invalid input', details: parsed.error.flatten() },
+                { status: 400 }
+            );
+        }
 
-    return NextResponse.json(newFeedback);
+        const entry = await FeedbackModel.create(parsed.data);
+        return NextResponse.json({ ...entry.toObject(), id: entry._id.toString() }, { status: 201 });
+    } catch {
+        return NextResponse.json({ error: 'Failed to submit feedback' }, { status: 500 });
+    }
 }

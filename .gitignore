@@ -40,8 +40,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# database (Commented out to allow initial data on Vercel deployment)
-# /data/
+# database — keep real runtime data files off of git
+# Run: git rm --cached data/*.json  (if these were previously committed)
+/data/
 
 # uploads
 /public/uploads/

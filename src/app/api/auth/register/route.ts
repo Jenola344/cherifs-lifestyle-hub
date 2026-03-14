@@ -4,8 +4,19 @@ import User from '@/models/User';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
+import { rateLimit, getClientIp } from '@/lib/rate-limit';
+import { logger } from '@/lib/logger';
 
 export async function POST(request: Request) {
+    // Rate limit: 5 registration attempts per IP per 10 minutes
+    const ip = getClientIp(request);
+    if (!rateLimit(ip, 5, 10 * 60_000)) {
+        return NextResponse.json(
+            { error: 'Too many registration attempts. Please try again later.' },
+            { status: 429 }
+        );
+    }
+
     try {
         await dbConnect();
         const { name, fullName, email, password } = await request.json();
@@ -13,6 +24,11 @@ export async function POST(request: Request) {
 
         if (!userName || !email || !password) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+        }
+
+        // Basic input length guards before hitting the DB
+        if (userName.length > 100 || email.length > 200 || password.length > 200) {
+            return NextResponse.json({ error: 'Input too long' }, { status: 400 });
         }
 
         // Check if user exists
@@ -40,7 +56,8 @@ export async function POST(request: Request) {
 
         // Send Verification Email
         try {
-            const verifyURL = `https://cherifs-lifestyle-hub.onrender.com/auth/verify-email?token=${verificationToken}`;
+            const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+            const verifyURL = `${baseUrl}/auth/verify-email?token=${verificationToken}`;
 
             const transporter = nodemailer.createTransport({
                 service: 'gmail',
@@ -70,20 +87,20 @@ export async function POST(request: Request) {
                     </div>
                 `
             });
-            console.log('Verification email sent:', info.messageId);
+            logger.info(`Verification email sent: ${info.messageId}`);
         } catch (mailError) {
-            console.error('Mail sending failed:', mailError);
-            // We still return 200/success because the user WAS created in the DB.
-            // But we warn them that the email might not have arrived.
+            // Log internally only — never expose SMTP error details to the client.
+            console.error('[Register] Verification email failed to send:', mailError);
+            // User was created successfully in DB. Warn them without leaking internals.
             return NextResponse.json({
-                message: mailError,
-                warning: 'User registered but failed to send verification email'
+                message: 'Account created successfully.',
+                warning: 'We could not send the verification email right now. Please use "Resend Verification" on the login page.'
             });
         }
 
         return NextResponse.json({ message: 'User registered. Please check your email for verification.' });
     } catch (error: any) {
-        console.error('Registration error details:', error);
-        return NextResponse.json({ error: error.message || 'Registration failed' }, { status: 500 });
+        logger.error('Registration error:', error);
+        return NextResponse.json({ error: 'Registration failed' }, { status: 500 });
     }
 }
