@@ -7,6 +7,7 @@ const UserSchema = new mongoose.Schema({
     image: { type: String },
     isVerified: { type: Boolean, default: false },
     verificationToken: { type: String },
+    verificationTokenExpiry: { type: Date },
     resetToken: { type: String },
     resetTokenExpiry: { type: Date },
     favorites: [{ type: String }], // Array of Art IDs

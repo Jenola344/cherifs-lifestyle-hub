@@ -8,9 +8,10 @@ import nodemailer from 'nodemailer';
 export async function POST(request: Request) {
     try {
         await dbConnect();
-        const { name, email, password } = await request.json();
+        const { name, fullName, email, password } = await request.json();
+        const userName = fullName || name;
 
-        if (!name || !email || !password) {
+        if (!userName || !email || !password) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
 
@@ -25,43 +26,37 @@ export async function POST(request: Request) {
 
         // Create verification token
         const verificationToken = crypto.randomBytes(32).toString('hex');
+        const verificationTokenExpiry = new Date(Date.now() + 1000 * 60 * 60); // 1 hour
 
         // Create user
         const user = await User.create({
-            name,
+            name: userName,
             email,
             password: hashedPassword,
             verificationToken,
+            verificationTokenExpiry,
             isVerified: false
         });
 
         // Send Verification Email
         try {
             const transporter = nodemailer.createTransport({
-                host: process.env.EMAIL_SERVER_HOST,
-                port: Number(process.env.EMAIL_SERVER_PORT),
+                service: 'gmail',
                 auth: {
                     user: process.env.EMAIL_SERVER_USER,
                     pass: process.env.EMAIL_SERVER_PASSWORD,
                 },
             });
 
-            const urlObj = new URL(request.url);
-            const appUrl = process.env.NEXTAUTH_URL || urlObj.origin;
-            const verificationUrl = `${appUrl}/api/auth/verify?token=${verificationToken}&email=${email}`;
+            const verifyURL = `https://cherifs-lifestyle-hub.onrender.com/auth/verify-email?token=${verificationToken}`;
 
             await transporter.sendMail({
                 from: process.env.EMAIL_FROM,
                 to: email,
-                subject: 'Verify your account - Cherif\'s Hub',
-                html: `
-                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee;">
-                        <h2 style="color: #333;">Welcome to Cherif's Lifestyle Hub</h2>
-                        <p>Thank you for joining us. Please verify your email address to get started.</p>
-                        <a href="${verificationUrl}" style="display: inline-block; padding: 10px 20px; background-color: #000; color: #fff; text-decoration: none; border-radius: 5px;">Verify Email</a>
-                        <p style="margin-top: 20px; font-size: 12px; color: #666;">If you didn't request this, please ignore this email.</p>
-                    </div>
-                `,
+                subject: 'Verify your email',
+                html: `<p>Hi ${userName},</p>
+                       <p>Click the link below to verify your email. It expires in 1 hour.</p>
+                       <a href="${verifyURL}">Verify Email</a>`
             });
         } catch (mailError) {
             console.error('Mail sending failed:', mailError);

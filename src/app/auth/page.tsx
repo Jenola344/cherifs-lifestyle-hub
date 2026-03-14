@@ -20,8 +20,9 @@ function AuthContent() {
     useEffect(() => {
         const error = searchParams.get('error');
         const success = searchParams.get('success');
+        const verified = searchParams.get('verified');
         if (error === 'invalid_verification') setMessage({ type: 'error', text: 'Invalid or expired verification link.' });
-        if (success === 'verified') setMessage({ type: 'success', text: 'Email verified! You can now sign in.' });
+        if (success === 'verified' || verified === 'true') setMessage({ type: 'success', text: 'Email verified! You can now sign in.' });
     }, [searchParams]);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -37,7 +38,10 @@ function AuthContent() {
                     redirect: false
                 });
 
-                if (result?.error) throw new Error('Invalid email or password');
+                if (result?.error) {
+                    // Check if it's the verification error specifically, or just throw the error message
+                    throw new Error(result.error);
+                }
                 router.push('/');
             } else {
                 const res = await fetch('/api/auth/register', {
