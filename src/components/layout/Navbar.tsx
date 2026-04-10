@@ -45,6 +45,9 @@ export default function Navbar() {
                         </div>
                     </div>
                     <Link href="/contact" className={styles.navLink}>Contact</Link>
+                    {user?.role === 'admin' && (
+                        <Link href="/admin" className={`${styles.navLink} ${styles.adminLink}`}>Admin</Link>
+                    )}
                 </div>
 
                 {/* Right Side Actions (Visible on both desktop and mobile) */}
@@ -86,6 +89,9 @@ export default function Navbar() {
                     <Link href="/about" onClick={() => setIsMobileMenuOpen(false)}>About</Link>
                     <Link href="/shop" onClick={() => setIsMobileMenuOpen(false)}>Gallery</Link>
                     <Link href="/contact" onClick={() => setIsMobileMenuOpen(false)}>Contact</Link>
+                    {user?.role === 'admin' && (
+                        <Link href="/admin" onClick={() => setIsMobileMenuOpen(false)} style={{ color: '#000', fontWeight: 'bold' }}>Admin Dashboard</Link>
+                    )}
                     {isAuthenticated ? (
                         <Link href="/profile" onClick={() => setIsMobileMenuOpen(false)}>Profile ({user?.name})</Link>
                     ) : (

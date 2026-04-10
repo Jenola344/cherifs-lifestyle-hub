@@ -75,15 +75,14 @@ export const authOptions: NextAuthOptions = {
     callbacks: {
         async jwt({ token, user }: { token: any, user?: any }) {
             if (user) {
-                // Automatically promote the owner emails to admin if defined
-                const adminEmails = (process.env.ADMIN_EMAIL || process.env.EMAIL_SERVER_USER || '').split(',').map(e => e.trim().toLowerCase());
-                if (user.email && adminEmails.includes(user.email.toLowerCase())) {
-                    token.role = 'admin';
-                } else {
-                    token.role = user.role || 'user';
-                }
                 token.id = user.id;
                 token.createdAt = user.createdAt;
+                token.role = user.role || 'user';
+            }
+            // Always ensure admin emails have the admin role, applied on every request
+            const adminEmails = (process.env.ADMIN_EMAIL || process.env.EMAIL_SERVER_USER || '').split(',').map(e => e.trim().toLowerCase());
+            if (token.email && adminEmails.includes(token.email.toLowerCase())) {
+                token.role = 'admin';
             }
             return token;
         },
