@@ -4,15 +4,18 @@ import { NextResponse } from 'next/server';
 
 import { cookies } from 'next/headers';
 
-type AuthSuccess = { error: null; session: Session | null };
+type AuthSuccessStrict = { error: null; session: Session };
+type AuthSuccessLax = { error: null; session: Session | null };
 type AuthFailure = { error: NextResponse; session: null };
-type AuthResult = AuthSuccess | AuthFailure;
+
+type AuthResultStrict = AuthSuccessStrict | AuthFailure;
+type AuthResultLax = AuthSuccessLax | AuthFailure;
 
 /**
  * requireAuth — ensures the caller has an active NextAuth session.
  * Use this on routes that require any logged-in user.
  */
-export async function requireAuth(): Promise<AuthResult> {
+export async function requireAuth(): Promise<AuthResultStrict> {
     const session = await getServerSession(authOptions);
     if (!session || !session.user) {
         return {
@@ -28,7 +31,7 @@ export async function requireAuth(): Promise<AuthResult> {
  * Can authenticate via NextAuth session or the fallback Access Code cookie.
  * Use this on all admin-only routes (user list, order management, art CRUD, etc.).
  */
-export async function requireAdmin(): Promise<AuthResult> {
+export async function requireAdmin(): Promise<AuthResultLax> {
     // 1. Check fallback Access Code cookie
     const cookieStore = await cookies();
     const fallbackAccessCookie = cookieStore.get('cherif_admin_access');

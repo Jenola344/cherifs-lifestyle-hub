@@ -3,6 +3,7 @@ import dbConnect from '@/lib/mongoose';
 import User from '@/models/User';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
+// @ts-ignore
 import { Resend } from 'resend';
 import { rateLimit, getClientIp } from '@/lib/rate-limit';
 import { logger } from '@/lib/logger';
