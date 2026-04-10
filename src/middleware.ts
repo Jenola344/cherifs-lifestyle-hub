@@ -37,6 +37,6 @@ export default withAuth(
 );
 
 export const config = {
-    // Only run middleware on admin routes — keeps all other pages fast
-    matcher: ['/admin/:path*'],
+    // Only run middleware on specific protected paths, exclude /admin here so the Access Code UI can load
+    matcher: ['/profile/:path*'],
 };

@@ -37,7 +37,18 @@ export async function POST(request: Request) {
         }
 
         if (password === adminPassword) {
-            return NextResponse.json({ success: true, message: 'Authenticated' });
+            // Set a secure, HTTP-only cookie indicating this user passed the Access Code hurdle
+            const response = NextResponse.json({ success: true, message: 'Authenticated' });
+            response.cookies.set({
+                name: 'cherif_admin_access',
+                value: adminPassword, // Store the valid password in the cookie for verification
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'lax',
+                path: '/',
+                maxAge: 60 * 60 * 24 // 1 day
+            });
+            return response;
         }
 
         return NextResponse.json({ success: false, message: 'Invalid credentials' }, { status: 401 });
