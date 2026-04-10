@@ -1,5 +1,5 @@
 import { getServerSession, Session } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from './auth';
 import { NextResponse } from 'next/server';
 
 type AuthSuccess = { error: null; session: Session };

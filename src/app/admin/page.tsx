@@ -1,4 +1,5 @@
 'use client';
+import { useSession } from 'next-auth/react';
 import { useState, useEffect } from 'react';
 import Button from '@/components/ui/Button';
 import { CheckCircle, Clock, History, LayoutDashboard, LogOut, Users, Palette, ShoppingCart, Plus, Trash2, Edit, MessageSquare, Star, BookOpen, X } from 'lucide-react';
@@ -7,6 +8,7 @@ import type { Order, ArtItem, BlogPost, Feedback, OrderItem } from '@/types';
 import { logger } from '@/lib/logger';
 
 export default function AdminDashboard() {
+    const { data: session, status } = useSession();
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [password, setPassword] = useState('');
     const [orders, setOrders] = useState<Order[]>([]);
@@ -45,6 +47,13 @@ export default function AdminDashboard() {
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const [broadcast, setBroadcast] = useState({ title: '', message: '', type: 'general' });
+
+    useEffect(() => {
+        // Automatically authenticate if user is already an admin via NextAuth
+        if (session?.user && (session.user as any).role === 'admin') {
+            setIsAuthenticated(true);
+        }
+    }, [session]);
 
     useEffect(() => {
         if (isAuthenticated) {
