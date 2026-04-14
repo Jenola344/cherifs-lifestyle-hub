@@ -1,5 +1,4 @@
 import { NextAuthOptions } from "next-auth";
-import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { MongoDBAdapter } from "@auth/mongodb-adapter";
 import clientPromise from "@/lib/mongodb";
@@ -14,10 +13,7 @@ const useAdapter = !!process.env.MONGODB_URI;
 export const authOptions: NextAuthOptions = {
     ...(useAdapter ? { adapter: MongoDBAdapter(clientPromise) as any } : {}),
     providers: [
-        GoogleProvider({
-            clientId: process.env.GOOGLE_CLIENT_ID || "",
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
-        }),
+
         EmailProvider({
             server: {
               host: process.env.EMAIL_SERVER_HOST,
@@ -47,7 +43,7 @@ export const authOptions: NextAuthOptions = {
                 }
 
                 if (!user.password) {
-                    throw new Error("This email is registered with Google. Please sign in with Google.");
+                    throw new Error("This email is registered via another method. Please use the appropriate sign-in method.");
                 }
 
                 if (!user.isVerified) {

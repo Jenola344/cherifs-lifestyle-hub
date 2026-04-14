@@ -1,10 +1,16 @@
 'use client';
 
 import { Instagram, Mail, MapPin, MessageCircle, Send, Music } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 import { APP_CONFIG } from '@/lib/config';
 import styles from './Footer.module.css';
 
 export default function Footer() {
+    const pathname = usePathname();
+
+    if (pathname?.startsWith('/admin')) {
+        return null;
+    }
 
     return (
         <footer className={styles.footer} id="contact">

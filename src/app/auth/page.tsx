@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import Button from '@/components/ui/Button';
 import Link from 'next/link';
+import { Eye, EyeOff } from 'lucide-react';
 import styles from './Auth.module.css';
 
 function AuthContent() {
@@ -11,6 +12,7 @@ function AuthContent() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [name, setName] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
     const router = useRouter();
@@ -103,13 +105,24 @@ function AuthContent() {
                         </div>
                         <div className={styles.group}>
                             <label>Password</label>
-                            <input
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                placeholder="••••••••"
-                                required
-                            />
+                            <div className={styles.passwordWrapper}>
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    placeholder="••••••••"
+                                    required
+                                    className={styles.passwordInput}
+                                />
+                                <button
+                                    type="button"
+                                    className={styles.passwordToggle}
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    aria-label={showPassword ? "Hide password" : "Show password"}
+                                >
+                                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                </button>
+                            </div>
                             {isLogin && (
                                 <div style={{ textAlign: 'right', marginTop: '0.5rem' }}>
                                     <Link href="/auth/forgot-password" className={styles.toggle} style={{ fontSize: '0.85rem' }}>
@@ -123,19 +136,6 @@ function AuthContent() {
                             {loading ? 'Processing...' : (isLogin ? 'Sign In' : 'Register')}
                         </Button>
                     </form>
-
-                    <div className={styles.divider}>
-                        <span>OR</span>
-                    </div>
-
-                    <Button
-                        onClick={() => signIn('google', { callbackUrl: '/' })}
-                        variant="outline"
-                        className={styles.googleBtn}
-                    >
-                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" width="18" height="18" />
-                        Sign in with Google
-                    </Button>
 
                     <div className={styles.footer}>
                         {isLogin ? "Don't have an account?" : "Already have an account?"}{' '}

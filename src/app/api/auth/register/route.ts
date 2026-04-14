@@ -3,12 +3,20 @@ import dbConnect from '@/lib/mongoose';
 import User from '@/models/User';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
-// @ts-ignore
 import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 import { rateLimit, getClientIp } from '@/lib/rate-limit';
 import { logger } from '@/lib/logger';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const transporter = nodemailer.createTransport({
+    host: process.env.EMAIL_SERVER_HOST,
+    port: Number(process.env.EMAIL_SERVER_PORT),
+    secure: Number(process.env.EMAIL_SERVER_PORT) === 465,
+    auth: {
+        user: process.env.EMAIL_SERVER_USER,
+        pass: process.env.EMAIL_SERVER_PASSWORD,
+    },
+});
 
 export async function POST(request: Request) {
     // Rate limit: 5 registration attempts per IP per 10 minutes
@@ -57,12 +65,12 @@ export async function POST(request: Request) {
             isVerified: false
         });
 
-        // Send Verification Email via Resend (HTTP API — works on Render)
+        // Send Verification Email via Nodemailer
         try {
             const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
             const verifyURL = `${baseUrl}/auth/verify-email?token=${verificationToken}`;
 
-            const { error: sendError } = await resend.emails.send({
+            await transporter.sendMail({
                 from: process.env.EMAIL_FROM || "CherifLifestyle <noreply@yourdomain.com>",
                 to: email,
                 subject: "Verify your email – CherifLifestyle",
@@ -79,15 +87,6 @@ export async function POST(request: Request) {
                     </div>
                 `,
             });
-
-            if (sendError) {
-                // Log internally — never expose Resend error details to the client
-                logger.error('[Register] Resend email error', sendError);
-                return NextResponse.json({
-                    message: 'Account created successfully.',
-                    warning: 'We could not send the verification email right now. Please use "Resend Verification" on the login page.'
-                });
-            }
 
             logger.info(`Verification email sent to ${email}`);
         } catch (mailError) {

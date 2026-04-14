@@ -45,6 +45,7 @@ export default function AdminDashboard() {
         status: 'available'
     });
     const [imageFile, setImageFile] = useState<File | null>(null);
+    const [isSubmittingArt, setIsSubmittingArt] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const [broadcast, setBroadcast] = useState({ title: '', message: '', type: 'general' });
 
@@ -128,6 +129,8 @@ export default function AdminDashboard() {
 
     const handleSaveArt = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (isSubmittingArt) return;
+        setIsSubmittingArt(true);
         const formData = new FormData();
         formData.append('title', newArt.title);
         formData.append('artist', newArt.artist);
@@ -156,6 +159,7 @@ export default function AdminDashboard() {
                 fetchAllData();
             }
         } catch (error) { alert('Failed to save art'); }
+        finally { setIsSubmittingArt(false); }
     };
 
     const handleDeleteArt = async (id: string) => {
@@ -368,8 +372,10 @@ export default function AdminDashboard() {
                             <button className={styles.addBtn} onClick={() => { setEditingArt(null); setShowArtModal(true); }}><Plus size={18} /> Add Artwork</button>
                         </div>
                         <div className={styles.artGrid}>
-                            {art.map(item => (
-                                <div key={item.id} className={styles.artCard}>
+                            {art.map(item => {
+                                const itemId = (item as any)._id?.toString() || item.id;
+                                return (
+                                <div key={itemId} className={styles.artCard}>
                                     <div className={styles.artImg} style={{ backgroundImage: `url(${item.image})` }}>
                                         {item.status === 'sold out' && <span className={styles.soldBadge}>Sold Out</span>}
                                     </div>
@@ -378,11 +384,12 @@ export default function AdminDashboard() {
                                         <p>{item.artist} • ₦{item.price}</p>
                                         <div className={styles.artActions}>
                                             <button onClick={() => openEditModal(item)} className={styles.editBtn}><Edit size={16} /></button>
-                                            <button onClick={() => handleDeleteArt(item.id)} className={styles.delBtn}><Trash2 size={16} /></button>
+                                            <button onClick={() => handleDeleteArt(itemId)} className={styles.delBtn}><Trash2 size={16} /></button>
                                         </div>
                                     </div>
                                 </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     </>
                 )}
@@ -522,7 +529,9 @@ export default function AdminDashboard() {
                             </div>
                             <div className={styles.modalBtns}>
                                 <button type="button" onClick={() => { setShowArtModal(false); setEditingArt(null); }}>Cancel</button>
-                                <button type="submit" className={styles.saveBtn}>Save Artwork</button>
+                                <button type="submit" className={styles.saveBtn} disabled={isSubmittingArt}>
+                                    {isSubmittingArt ? 'Saving...' : 'Save Artwork'}
+                                </button>
                             </div>
                         </form>
                     </div>

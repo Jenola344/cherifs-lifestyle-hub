@@ -3,11 +3,13 @@ import { useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Button from '@/components/ui/Button';
 import Link from 'next/link';
+import { Eye, EyeOff } from 'lucide-react';
 import styles from '../Auth.module.css';
 
 function ResetPasswordContent() {
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
     const searchParams = useSearchParams();
@@ -65,23 +67,43 @@ function ResetPasswordContent() {
                     <form onSubmit={handleSubmit} className={styles.form}>
                         <div className={styles.group}>
                             <label>New Password</label>
-                            <input
-                                type="password"
-                                value={newPassword}
-                                onChange={(e) => setNewPassword(e.target.value)}
-                                placeholder="••••••••"
-                                required
-                            />
+                            <div className={styles.passwordWrapper}>
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    value={newPassword}
+                                    onChange={(e) => setNewPassword(e.target.value)}
+                                    placeholder="••••••••"
+                                    required
+                                    className={styles.passwordInput}
+                                />
+                                <button
+                                    type="button"
+                                    className={styles.passwordToggle}
+                                    onClick={() => setShowPassword(!showPassword)}
+                                >
+                                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                </button>
+                            </div>
                         </div>
                         <div className={styles.group}>
                             <label>Confirm New Password</label>
-                            <input
-                                type="password"
-                                value={confirmPassword}
-                                onChange={(e) => setConfirmPassword(e.target.value)}
-                                placeholder="••••••••"
-                                required
-                            />
+                            <div className={styles.passwordWrapper}>
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    placeholder="••••••••"
+                                    required
+                                    className={styles.passwordInput}
+                                />
+                                <button
+                                    type="button"
+                                    className={styles.passwordToggle}
+                                    onClick={() => setShowPassword(!showPassword)}
+                                >
+                                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                </button>
+                            </div>
                         </div>
 
                         <Button type="submit" variant="primary" className={styles.btn} disabled={loading}>

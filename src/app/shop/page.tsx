@@ -242,7 +242,7 @@ export default function Shop() {
                                                     className={`${styles.optBtn} ${selectedFrame === 'Framed' ? styles.optActive : ''}`}
                                                     onClick={() => setSelectedFrame('Framed')}
                                                 >
-                                                    Framed (+ ₦150)
+                                                    Framed (+ ₦5,000)
                                                 </button>
                                             </div>
                                         </div>
