@@ -3,61 +3,76 @@ import dbConnect from '@/lib/mongoose';
 import User from '@/models/User';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
-import { Resend } from 'resend';
 import nodemailer from 'nodemailer';
 import { rateLimit, getClientIp } from '@/lib/rate-limit';
 import { logger } from '@/lib/logger';
 
-const transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_SERVER_HOST,
-    port: Number(process.env.EMAIL_SERVER_PORT),
-    secure: Number(process.env.EMAIL_SERVER_PORT) === 465,
-    auth: {
-        user: process.env.EMAIL_SERVER_USER,
-        pass: process.env.EMAIL_SERVER_PASSWORD,
-    },
-});
-
 export async function POST(request: Request) {
-    // Rate limit: 5 registration attempts per IP per 10 minutes
     const ip = getClientIp(request);
     if (!rateLimit(ip, 5, 10 * 60_000)) {
-        return NextResponse.json(
-            { error: 'Too many registration attempts. Please try again later.' },
-            { status: 429 }
-        );
+        return NextResponse.json({ error: 'Too many registration attempts.' }, { status: 429 });
     }
 
     try {
         await dbConnect();
-        const { name, fullName, email, password } = await request.json();
-        const userName = fullName || name;
+        const { name, email, password } = await request.json();
 
-        if (!userName || !email || !password) {
+        if (!name || !email || !password) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
 
-        // Basic input length guards before hitting the DB
-        if (userName.length > 100 || email.length > 200 || password.length > 200) {
-            return NextResponse.json({ error: 'Input too long' }, { status: 400 });
-        }
-
-        // Check if user exists
         const existingUser = await User.findOne({ email });
         if (existingUser) {
             return NextResponse.json({ error: 'User already exists' }, { status: 400 });
         }
 
-        // Hash password
         const hashedPassword = await bcrypt.hash(password, 12);
-
-        // Create verification token
         const verificationToken = crypto.randomBytes(32).toString('hex');
-        const verificationTokenExpiry = new Date(Date.now() + 1000 * 60 * 60); // 1 hour
+        const verificationTokenExpiry = new Date(Date.now() + 1000 * 60 * 60);
 
-        // Create user first so we don't orphan the record if email fails
+        // Define transporter INSIDE the function to ensure environment variables are loaded
+        const transporter = nodemailer.createTransport({
+            service: 'gmail', // Let nodemailer handle the host/port/secure for Gmail
+            auth: {
+                user: process.env.EMAIL_SERVER_USER,
+                pass: process.env.EMAIL_SERVER_PASSWORD,
+            },
+        });
+
+        // 1. Try sending the email BEFORE creating the user
+        try {
+            const baseUrl = process.env.NEXT_URL || process.env.NEXTAUTH_URL || 'https://cherififestyle.onrender.com';
+            const verifyURL = `${baseUrl}/auth/verify-email?token=${verificationToken}`;
+
+            await transporter.sendMail({
+                from: `"CherifLifestyle" <${process.env.EMAIL_SERVER_USER}>`,
+                to: email,
+                subject: "Verify your email - CherifLifestyle",
+                html: `
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee;">
+                        <h2 style="color: #333;">Welcome!</h2>
+                        <p>Click the button below to verify your email address.</p>
+                        <a href="${verifyURL}"
+                           style="display: inline-block; background: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 4px;">
+                          Verify Email
+                        </a>
+                        <p style="margin-top: 20px;">This link expires in 1 hour.</p>
+                    </div>
+                `,
+            });
+
+            logger.info(`Verification email sent to ${email}`);
+        } catch (mailError: any) {
+            logger.error('[Register] Email failed', mailError);
+            // RELAY THE ERROR TO THE USER FOR DEBUGGING
+            return NextResponse.json({ 
+                error: `Email failed to send. Error: ${mailError.message}. Please check your App Password or Gmail Security.` 
+            }, { status: 500 });
+        }
+
+        // 2. Only if email succeeded, create the user
         await User.create({
-            name: userName,
+            name,
             email,
             password: hashedPassword,
             verificationToken,
@@ -65,41 +80,9 @@ export async function POST(request: Request) {
             isVerified: false
         });
 
-        // Send Verification Email via Nodemailer
-        try {
-            const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
-            const verifyURL = `${baseUrl}/auth/verify-email?token=${verificationToken}`;
-
-            await transporter.sendMail({
-                from: process.env.EMAIL_FROM || "CherifLifestyle <noreply@yourdomain.com>",
-                to: email,
-                subject: "Verify your email – CherifLifestyle",
-                html: `
-                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee;">
-                        <h2 style="color: #333;">Welcome, ${userName}!</h2>
-                        <p>Click the button below to verify your email address.</p>
-                        <a href="${verifyURL}"
-                           style="display: inline-block; background: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 4px;">
-                          Verify Email
-                        </a>
-                        <p style="margin-top: 20px;">This link expires in <strong>1 hour</strong>.</p>
-                        <p style="font-size: 12px; color: #666;">If you didn't create this account, ignore this email.</p>
-                    </div>
-                `,
-            });
-
-            logger.info(`Verification email sent to ${email}`);
-        } catch (mailError) {
-            logger.error('[Register] Verification email failed to send', mailError);
-            return NextResponse.json({
-                message: 'Account created successfully.',
-                warning: 'We could not send the verification email right now. Please use "Resend Verification" on the login page.'
-            });
-        }
-
-        return NextResponse.json({ message: 'User registered. Please check your email for verification.' });
+        return NextResponse.json({ message: 'User registered. Please check your email.' });
     } catch (error: any) {
         logger.error('Registration error:', error);
-        return NextResponse.json({ error: 'Registration failed' }, { status: 500 });
+        return NextResponse.json({ error: 'Registration failed overall' }, { status: 500 });
     }
 }
