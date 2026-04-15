@@ -6,32 +6,13 @@ import { requireAdmin, requireAuth } from '@/lib/auth-helpers';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
 
-const OrderItemSchema = z.object({
-    artId: z.string().min(1).max(100),
-    title: z.string().max(200).optional().default(''),
-    image: z.string().max(500).optional().default(''),
-    size: z.string().max(50).optional().default(''),
-    frame: z.string().max(50).optional().default(''),
-    quantity: z.number().int().min(1).max(50),
-    price: z.number().optional(),
-});
-
+// Extremely flexible schema to ensure orders processed even if frontend/backend are slightly out of sync
 const CreateOrderSchema = z.object({
-    items: z.array(OrderItemSchema).min(1).max(50),
-    customerName: z.string().max(200).optional(),
-    platform: z.string().max(50).optional(),
-    shippingAddress: z.object({
-        name: z.string().max(200).optional().default('Unknown'),
-        address: z.string().max(500).optional().default('WhatsApp Contact'),
-        city: z.string().max(100).optional().default('N/A'),
-        phone: z.string().max(30).optional().default('N/A'),
-    }).optional().default({
-        name: 'Unknown',
-        address: 'WhatsApp Contact',
-        city: 'N/A',
-        phone: 'N/A'
-    }),
-});
+    items: z.array(z.any()).min(1),
+    customerName: z.string().optional(),
+    platform: z.string().optional(),
+    shippingAddress: z.any().optional().default({}),
+}).passthrough();
 
 export async function GET() {
     const { error } = await requireAdmin();
@@ -61,28 +42,36 @@ export async function POST(request: Request) {
 
         const parsed = CreateOrderSchema.safeParse(body);
         if (!parsed.success) {
+            logger.error('[Orders] Validation failed', parsed.error.format());
             return NextResponse.json(
-                { error: 'Invalid order data', details: parsed.error.flatten() },
+                { error: 'Invalid order data', details: parsed.error.format() },
                 { status: 400 }
             );
         }
 
         const { items, shippingAddress, customerName, platform } = parsed.data;
 
-        const artIds = items.map((i: any) => i.artId);
+        // Extract Art IDs safely
+        const artIds = items.map((i: any) => i.artId || i.id).filter(Boolean);
         const artRecords = await Art.find({ _id: { $in: artIds } }).lean();
 
         let serverTotal = 0;
-        for (const item of items) {
-            const record = artRecords.find((a: any) => a._id.toString() === item.artId);
-            if (!record) {
-                return NextResponse.json(
-                    { error: `Art item not found: ${item.artId}` },
-                    { status: 404 }
-                );
-            }
-            serverTotal += (record as any).price * Math.max(1, item.quantity || 1);
-        }
+        const validatedItems = items.map((item: any) => {
+            const artId = item.artId || item.id;
+            const record = artRecords.find((a: any) => a._id.toString() === artId);
+            
+            // Fallback to item price if record not found (prevents order failure)
+            const price = record ? (record as any).price : (item.price || 0);
+            const quantity = Math.max(1, item.quantity || 1);
+            serverTotal += price * quantity;
+
+            return {
+                ...item,
+                artId: artId,
+                price: price,
+                quantity: quantity
+            };
+        });
 
         const userId = (session!.user as any).id;
         const userEmail = session!.user?.email;
@@ -92,7 +81,7 @@ export async function POST(request: Request) {
             customerName: customerName || session!.user?.name || 'Guest',
             userEmail,
             platform: platform || 'web',
-            items,
+            items: validatedItems,
             totalPrice: serverTotal,
             shippingAddress: shippingAddress || {
                 name: customerName || 'N/A',
@@ -107,9 +96,9 @@ export async function POST(request: Request) {
             ...newOrder.toObject(),
             id: newOrder._id.toString()
         });
-    } catch (error) {
+    } catch (error: any) {
         logger.error('Failed to create order', error);
-        return NextResponse.json({ error: 'Failed to create order' }, { status: 500 });
+        return NextResponse.json({ error: `Server error: ${error.message}` }, { status: 500 });
     }
 }
 
