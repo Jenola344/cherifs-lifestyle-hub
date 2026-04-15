@@ -49,10 +49,7 @@ export default function Cart() {
             platform: 'web-whatsapp'
         };
 
-        try {
-            // Fetch configuration first
-            const configRes = await fetch('/api/admin/login');
-            const { whatsappNumber } = await configRes.json();
+            const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '2349031103553';
 
             const response = await fetch('/api/orders', {
                 method: 'POST',

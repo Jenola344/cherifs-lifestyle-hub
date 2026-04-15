@@ -25,11 +25,11 @@ const CreateOrderSchema = z.object({
     customerName: z.string().max(200).optional(),
     platform: z.string().max(50).optional(),
     shippingAddress: z.object({
-        name: z.string().min(1).max(200),
-        address: z.string().min(1).max(500),
-        city: z.string().min(1).max(100),
-        phone: z.string().min(1).max(30),
-    }),
+        name: z.string().max(200).default(''),
+        address: z.string().max(500).optional().default(''),
+        city: z.string().max(100).optional().default(''),
+        phone: z.string().max(30).default(''),
+    }).optional(),
 });
 
 /**
