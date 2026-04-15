@@ -55,7 +55,7 @@ function AuthContent() {
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error || 'Registration failed');
 
-                setMessage({ type: 'success', text: 'Registration successful! Please check your email to verify your account.' });
+                setMessage({ type: 'success', text: data.message || 'Registration successful! You can now sign in.' });
                 setIsLogin(true);
             }
         } catch (error: any) {
