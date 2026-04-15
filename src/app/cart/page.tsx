@@ -58,7 +58,10 @@ export default function Cart() {
                 body: JSON.stringify(orderData)
             });
 
-            if (!response.ok) throw new Error('Failed to create order');
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || (errorData.details ? JSON.stringify(errorData.details) : '') || 'Failed to create order');
+            }
 
             // WhatsApp Messaging
             let message = `Hello Cherif's Lifestyle Hub, I would like to place an order for:\n\n`;
@@ -80,8 +83,8 @@ export default function Cart() {
             window.open(url, '_blank');
             alert('Order registered! Redirecting to WhatsApp concierge...');
             clearCart();
-        } catch (error) {
-            alert('There was an error processing your order.');
+        } catch (error: any) {
+            alert(`There was an error processing your order: ${error.message}`);
         } finally {
             setIsSubmitting(false);
         }

@@ -6,9 +6,6 @@ import { requireAdmin, requireAuth } from '@/lib/auth-helpers';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
 
-/**
- * Zod schema — validated before any DB interaction
- */
 const OrderItemSchema = z.object({
     artId: z.string().min(1).max(100),
     title: z.string().max(200).optional().default(''),
@@ -16,25 +13,21 @@ const OrderItemSchema = z.object({
     size: z.string().max(50).optional().default(''),
     frame: z.string().max(50).optional().default(''),
     quantity: z.number().int().min(1).max(50),
-    // price field is intentionally NOT trusted from client — server recalculates
     price: z.number().optional(),
 });
 
 const CreateOrderSchema = z.object({
-    items: z.array(OrderItemSchema).min(1, 'At least one item required').max(50),
+    items: z.array(OrderItemSchema).min(1).max(50),
     customerName: z.string().max(200).optional(),
     platform: z.string().max(50).optional(),
     shippingAddress: z.object({
-        name: z.string().max(200).default(''),
-        address: z.string().max(500).optional().default(''),
-        city: z.string().max(100).optional().default(''),
-        phone: z.string().max(30).default(''),
-    }).optional(),
+        name: z.string().max(200).optional().default('Unknown'),
+        address: z.string().max(500).optional().default('WhatsApp Contact'),
+        city: z.string().max(100).optional().default('N/A'),
+        phone: z.string().max(30).optional().default('N/A'),
+    }).optional().default({}),
 });
 
-/**
- * GET /api/orders — Admin only. Returns all orders sorted newest first.
- */
 export async function GET() {
     const { error } = await requireAdmin();
     if (error) return error;
@@ -53,12 +46,6 @@ export async function GET() {
     }
 }
 
-/**
- * POST /api/orders — Requires auth. Creates a new order.
- *
- * SECURITY: totalPrice is recalculated server-side from actual Art DB records.
- * The client-submitted price is discarded. This prevents price tampering.
- */
 export async function POST(request: Request) {
     const { error, session } = await requireAuth();
     if (error) return error;
@@ -67,7 +54,6 @@ export async function POST(request: Request) {
         await dbConnect();
         const body = await request.json();
 
-        // Validate shape before touching the DB
         const parsed = CreateOrderSchema.safeParse(body);
         if (!parsed.success) {
             return NextResponse.json(
@@ -78,11 +64,7 @@ export async function POST(request: Request) {
 
         const { items, shippingAddress, customerName, platform } = parsed.data;
 
-        // Server-side price recalculation — never trust the client's totalPrice
-        const artIds = items
-            .map((i: any) => i.artId)
-            .filter((id: any) => typeof id === 'string' && id.length > 0);
-
+        const artIds = items.map((i: any) => i.artId);
         const artRecords = await Art.find({ _id: { $in: artIds } }).lean();
 
         let serverTotal = 0;
@@ -91,14 +73,14 @@ export async function POST(request: Request) {
             if (!record) {
                 return NextResponse.json(
                     { error: `Art item not found: ${item.artId}` },
-                    { status: 400 }
+                    { status: 404 }
                 );
             }
             serverTotal += (record as any).price * Math.max(1, item.quantity || 1);
         }
 
-        const userEmail = session!.user?.email;
         const userId = (session!.user as any).id;
+        const userEmail = session!.user?.email;
 
         const newOrder = await Order.create({
             userId,
@@ -106,8 +88,13 @@ export async function POST(request: Request) {
             userEmail,
             platform: platform || 'web',
             items,
-            totalPrice: serverTotal,   // ← server-calculated, not client-submitted
-            shippingAddress,
+            totalPrice: serverTotal,
+            shippingAddress: shippingAddress || {
+                name: customerName || 'N/A',
+                address: 'Consult WhatsApp',
+                city: 'N/A',
+                phone: 'N/A'
+            },
             status: 'Pending'
         });
 
@@ -121,9 +108,6 @@ export async function POST(request: Request) {
     }
 }
 
-/**
- * PUT /api/orders — Admin only. Updates order status.
- */
 export async function PUT(request: Request) {
     const { error } = await requireAdmin();
     if (error) return error;
@@ -142,7 +126,6 @@ export async function PUT(request: Request) {
             return NextResponse.json({ error: 'Order not found' }, { status: 404 });
         }
 
-        // Notify user about status change
         try {
             const Notification = (await import('@/models/Notification')).default;
             await Notification.create({
@@ -155,7 +138,6 @@ export async function PUT(request: Request) {
                 link: '/profile'
             });
         } catch (e) {
-            // Notification failure is non-critical — log but don't fail the request
             logger.error('[Orders] Failed to create status notification', e);
         }
 
