@@ -25,7 +25,12 @@ const CreateOrderSchema = z.object({
         address: z.string().max(500).optional().default('WhatsApp Contact'),
         city: z.string().max(100).optional().default('N/A'),
         phone: z.string().max(30).optional().default('N/A'),
-    }).optional().default({}),
+    }).optional().default({
+        name: 'Unknown',
+        address: 'WhatsApp Contact',
+        city: 'N/A',
+        phone: 'N/A'
+    }),
 });
 
 export async function GET() {
