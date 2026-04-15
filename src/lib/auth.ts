@@ -46,9 +46,11 @@ export const authOptions: NextAuthOptions = {
                     throw new Error("This email is registered via another method. Please use the appropriate sign-in method.");
                 }
 
+                /* 
                 if (!user.isVerified) {
-                    throw new Error("Please verify your email address to sign in. Check your inbox for the verification link.");
+                    throw new Error("Please verify your email address to sign in.");
                 }
+                */
 
                 const isValid = await bcrypt.compare(credentials.password, user.password);
                 if (!isValid) {
