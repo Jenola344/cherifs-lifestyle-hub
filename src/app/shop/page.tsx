@@ -5,16 +5,19 @@ import { useUser } from '@/context/UserContext';
 import styles from './Shop.module.css';
 import Button from '@/components/ui/Button';
 import Reveal from '@/components/ui/Reveal';
-import { X, Heart, Star, MessageSquare, Send } from 'lucide-react';
+import { X, Heart, Star, Send } from 'lucide-react';
 import type { ArtItem, Review } from '@/types';
 import { logger } from '@/lib/logger';
+import Image from 'next/image';
+import ZoomableImage from '@/components/ui/ZoomableImage';
 
 export default function Shop() {
     const { addToCart } = useCart();
     const { user, toggleFavorite, isAuthenticated } = useUser();
     const [artCollection, setArtCollection] = useState<ArtItem[]>([]);
     const [filter, setFilter] = useState('All');
-    const [selectedArt, setSelectedArt] = useState<ArtItem | null>(null);
+    const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+    const selectedArt = selectedIndex !== null ? filteredItems[selectedIndex] : null;
     const [selectedSize, setSelectedSize] = useState('');
     const [selectedFrame, setSelectedFrame] = useState<'Framed' | 'Frameless'>('Frameless');
     const [loading, setLoading] = useState(true);
@@ -76,8 +79,39 @@ export default function Shop() {
         ? artCollection
         : artCollection.filter(item => item.category === filter);
 
-    const handleOpenArt = (item: ArtItem) => {
-        setSelectedArt(item);
+    // Keyboard navigation & Focus trap logic
+    const modalRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (selectedIndex === null) return;
+        
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') setSelectedIndex(null);
+            if (e.key === 'ArrowLeft') handlePrev();
+            if (e.key === 'ArrowRight') handleNext();
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        
+        // Focus trap
+        if (modalRef.current) {
+            modalRef.current.focus();
+        }
+
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [selectedIndex, filteredItems.length]);
+
+    const handlePrev = useCallback(() => {
+        setSelectedIndex(prev => (prev !== null && prev > 0 ? prev - 1 : filteredItems.length - 1));
+    }, [filteredItems.length]);
+
+    const handleNext = useCallback(() => {
+        setSelectedIndex(prev => (prev !== null && prev < filteredItems.length - 1 ? prev + 1 : 0));
+    }, [filteredItems.length]);
+
+    const handleOpenArt = (index: number) => {
+        setSelectedIndex(index);
+        const item = filteredItems[index];
         setSelectedSize(item.sizes?.[0] || '');
         setSelectedFrame('Frameless');
         setNewReview({ rating: 5, comment: '' });
@@ -96,7 +130,7 @@ export default function Shop() {
             frame: selectedFrame
         });
 
-        setSelectedArt(null);
+        setSelectedIndex(null);
         alert(`${selectedArt.title} added to cart!`);
     };
 
@@ -166,14 +200,21 @@ export default function Shop() {
                     const isFav = user?.favorites?.includes(item.id);
                     return (
                         <Reveal key={item.id} delay={(index % 3) * 100}>
-                            <div className={styles.card} onClick={() => handleOpenArt(item)}>
-                                <div
-                                    className={styles.imageWrapper}
-                                    style={{ backgroundImage: `url(${item.image})` }}
-                                >
+                            <div className={styles.card} onClick={() => handleOpenArt(index)}>
+                                <div className={styles.imageWrapper}>
+                                    <Image 
+                                        src={item.image} 
+                                        alt={item.title} 
+                                        fill 
+                                        className={styles.image}
+                                        sizes="(max-width: 768px) 100vw, 380px"
+                                        placeholder="blur"
+                                        blurDataURL="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiNlZWVlZWUiLz48L3N2Zz4="
+                                    />
                                     <button
                                         className={`${styles.favBtn} ${isFav ? styles.isFav : ''}`}
                                         onClick={(e) => handleFavorite(e, item.id)}
+                                        aria-label={isFav ? "Remove from favorites" : "Add to favorites"}
                                     >
                                         <Heart size={20} fill={isFav ? "white" : "none"} />
                                     </button>
@@ -196,20 +237,44 @@ export default function Shop() {
 
             {/* Art Details Modal */}
             {selectedArt && (
-                <div className={styles.modalOverlay} onClick={() => setSelectedArt(null)}>
-                    <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
-                        <button className={styles.closeBtn} onClick={() => setSelectedArt(null)}><X /></button>
+                <div className={styles.modalOverlay} onClick={() => setSelectedIndex(null)}>
+                    <div 
+                        className={styles.modalContent} 
+                        onClick={e => e.stopPropagation()} 
+                        ref={modalRef} 
+                        tabIndex={-1}
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="modal-title"
+                    >
+                        <button 
+                            className={styles.closeBtn} 
+                            onClick={() => setSelectedIndex(null)}
+                            aria-label="Close modal"
+                        >
+                            <X />
+                        </button>
                         <div className={styles.modalGrid}>
-                            <div
-                                className={styles.modalImage}
-                                style={{ backgroundImage: `url(${selectedArt.image})` }}
-                            >
-                                {selectedArt.status === 'sold out' && <span className={styles.soldBadgeLarge}>Sold Out</span>}
+                            <div className={styles.modalImageContainer}>
+                                <ZoomableImage 
+                                    src={selectedArt.image} 
+                                    alt={selectedArt.title}
+                                    isSoldOut={selectedArt.status === 'sold out'}
+                                    onSwipeLeft={handleNext}
+                                    onSwipeRight={handlePrev}
+                                />
+                                {/* Preload adjacent images */}
+                                {selectedIndex !== null && selectedIndex < filteredItems.length - 1 && (
+                                    <link rel="preload" as="image" href={filteredItems[selectedIndex + 1].image} />
+                                )}
+                                {selectedIndex !== null && selectedIndex > 0 && (
+                                    <link rel="preload" as="image" href={filteredItems[selectedIndex - 1].image} />
+                                )}
                             </div>
                             <div className={styles.modalInfo}>
                                 <div className={styles.modalScroll}>
                                     <span className={styles.modalCategory}>{selectedArt.category}</span>
-                                    <h2 className={styles.modalTitle}>{selectedArt.title}</h2>
+                                    <h2 id="modal-title" className={styles.modalTitle}>{selectedArt.title}</h2>
                                     <p className={styles.modalArtist}>by {selectedArt.artist}</p>
                                     <p className={styles.modalDesc}>{selectedArt.description}</p>
 
