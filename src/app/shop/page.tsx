@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useCart } from '@/context/CartContext';
 import { useUser } from '@/context/UserContext';
 import styles from './Shop.module.css';
@@ -17,7 +17,6 @@ export default function Shop() {
     const [artCollection, setArtCollection] = useState<ArtItem[]>([]);
     const [filter, setFilter] = useState('All');
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-    const selectedArt = selectedIndex !== null ? filteredItems[selectedIndex] : null;
     const [selectedSize, setSelectedSize] = useState('');
     const [selectedFrame, setSelectedFrame] = useState<'Framed' | 'Frameless'>('Frameless');
     const [loading, setLoading] = useState(true);
@@ -26,6 +25,14 @@ export default function Shop() {
     const [reviews, setReviews] = useState<Review[]>([]);
     const [newReview, setNewReview] = useState({ rating: 5, comment: '' });
     const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+
+    const categories = ['All', ...Array.from(new Set(artCollection.map(item => item.category)))];
+
+    const filteredItems = filter === 'All'
+        ? artCollection
+        : artCollection.filter(item => item.category === filter);
+
+    const selectedArt = selectedIndex !== null ? filteredItems[selectedIndex] : null;
 
     useEffect(() => {
         fetchArt();
@@ -72,12 +79,6 @@ export default function Shop() {
             .then((data: Review[]) => setReviews(data))
             .catch(err => logger.error('Fetch reviews failed', err));
     };
-
-    const categories = ['All', ...Array.from(new Set(artCollection.map(item => item.category)))];
-
-    const filteredItems = filter === 'All'
-        ? artCollection
-        : artCollection.filter(item => item.category === filter);
 
     // Keyboard navigation & Focus trap logic
     const modalRef = useRef<HTMLDivElement>(null);
