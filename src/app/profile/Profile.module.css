@@ -1,6 +1,6 @@
 .main {
     min-height: 100vh;
-    padding: 8rem 0;
+    padding: clamp(6rem, 10vw, 8rem) 0;
     background-color: var(--color-ivory);
 }
 
@@ -21,7 +21,7 @@
 
 .title {
     font-family: var(--font-heading);
-    font-size: 3rem;
+    font-size: clamp(2rem, 6vw, 3rem);
     margin-bottom: 0.5rem;
 }
 
@@ -55,6 +55,12 @@
     gap: 2rem;
     margin-bottom: 3rem;
     border-bottom: 1px solid #ddd;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+}
+.tabs::-webkit-scrollbar {
+    display: none;
 }
 
 .tabBtn {
@@ -73,6 +79,8 @@
     cursor: pointer;
     position: relative;
     transition: color 0.2s;
+    flex-shrink: 0;
+    white-space: nowrap;
 }
 
 .tabActive {
@@ -152,7 +160,7 @@
 
 .feedbackCard {
     background: #fdfdfd;
-    padding: 4rem;
+    padding: clamp(2rem, 5vw, 4rem);
     border-radius: 12px;
     max-width: 800px;
     margin: 0 auto;
@@ -162,7 +170,7 @@
 
 .feedbackCard h2 {
     font-family: var(--font-heading);
-    font-size: 2.5rem;
+    font-size: clamp(1.75rem, 5vw, 2.5rem);
     margin-bottom: 1rem;
 }
 
@@ -237,6 +245,8 @@
     color: #888;
     font-size: 0.9rem;
     text-transform: uppercase;
+    flex-wrap: wrap;
+    gap: 1rem;
 }
 
 .status {
@@ -295,4 +305,11 @@
 .empty p {
     margin-bottom: 2rem;
     color: #666;
+}
+
+@media (max-width: 600px) {
+    .header {
+        flex-direction: column;
+        gap: 1.5rem;
+    }
 }

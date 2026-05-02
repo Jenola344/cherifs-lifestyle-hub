@@ -169,6 +169,11 @@
     background: none;
     border: none;
     cursor: pointer;
+    padding: 0.5rem;
+    min-width: 48px;
+    min-height: 48px;
+    align-items: center;
+    justify-content: center;
 }
 
 .mobileMenu {
@@ -180,15 +185,27 @@
     padding: 3rem 2rem;
     display: flex;
     flex-direction: column;
-    gap: 2rem;
+    gap: 1rem;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     text-align: center;
+    transform-origin: top center;
+    animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: scaleY(0); }
+    to { opacity: 1; transform: scaleY(1); }
 }
 
 .mobileMenu a {
     font-family: var(--font-heading);
     font-size: 1.5rem;
     text-transform: uppercase;
+    padding: 0.75rem;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 @media (max-width: 1024px) {
@@ -197,7 +214,7 @@
     }
 
     .mobileToggle {
-        display: block;
+        display: flex;
     }
 
     .iconGroup {

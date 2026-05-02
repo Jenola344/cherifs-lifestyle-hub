@@ -1,6 +1,6 @@
 .main {
     min-height: 100vh;
-    padding: 8rem 0;
+    padding: clamp(6rem, 10vw, 8rem) 0;
     background-color: var(--color-ivory);
 }
 
@@ -21,7 +21,7 @@
 
 .emptyCart h1 {
     font-family: var(--font-heading);
-    font-size: 3rem;
+    font-size: clamp(2rem, 6vw, 3rem);
     margin-bottom: 1rem;
 }
 
@@ -46,7 +46,7 @@
 
 .title {
     font-family: var(--font-heading);
-    font-size: 3.5rem;
+    font-size: clamp(2.5rem, 8vw, 3.5rem);
     margin-bottom: 3rem;
 }
 
@@ -61,11 +61,25 @@
     .content {
         grid-template-columns: 1fr;
     }
+    .itemInfo {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    .itemImage {
+        width: 100%;
+        height: 200px;
+    }
+    .itemActions {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
 }
 
 .itemList {
     background: white;
-    padding: 3rem;
+    padding: clamp(1.5rem, 4vw, 3rem);
     border-radius: var(--radius-sm);
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.03);
 }
@@ -99,6 +113,7 @@
     background-size: cover;
     background-position: center;
     border-radius: 4px;
+    flex-shrink: 0;
 }
 
 .itemTitle {
@@ -139,7 +154,7 @@
 
 .summary {
     background: white;
-    padding: 4rem;
+    padding: clamp(2rem, 5vw, 4rem);
     border-radius: var(--radius-sm);
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.03);
     position: sticky;

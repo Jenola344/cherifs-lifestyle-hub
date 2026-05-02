@@ -1,7 +1,7 @@
 .footer {
     background-color: var(--color-black);
     color: var(--color-white);
-    padding: 6rem 0 2rem;
+    padding: clamp(4rem, 10vw, 6rem) 0 2rem;
 }
 
 .container {
@@ -19,7 +19,13 @@
 @media (max-width: 768px) {
     .grid {
         grid-template-columns: 1fr;
-        gap: 3rem;
+        gap: 2.5rem;
+    }
+    .faqSection {
+        padding: 2rem 1.5rem;
+    }
+    .branding {
+        font-size: 1.75rem;
     }
 }
 

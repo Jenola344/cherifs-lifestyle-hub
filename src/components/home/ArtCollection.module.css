@@ -1,5 +1,5 @@
 .section {
-    padding: 10rem 0;
+    padding: clamp(4rem, 10vw, 10rem) 0;
     background-color: var(--color-black);
     color: white;
     overflow: hidden;
@@ -25,14 +25,14 @@
 
 .heading {
     font-family: var(--font-heading);
-    font-size: 3.5rem;
+    font-size: clamp(2.5rem, 8vw, 3.5rem);
     margin-bottom: 2rem;
     line-height: 1.1;
 }
 
 .text {
     font-family: var(--font-body);
-    font-size: 1.25rem;
+    font-size: clamp(1rem, 3vw, 1.25rem);
     line-height: 1.8;
     margin-bottom: 3rem;
     color: rgba(255, 255, 255, 0.7);
@@ -40,7 +40,7 @@
 }
 
 .imageWrapper {
-    height: 600px;
+    height: clamp(350px, 60vh, 600px);
     border-radius: var(--radius-sm);
     overflow: hidden;
 }
@@ -58,7 +58,7 @@
 }
 
 @media (max-width: 600px) {
-    .heading {
-        font-size: 2.5rem;
+    .container {
+        gap: 2rem;
     }
 }

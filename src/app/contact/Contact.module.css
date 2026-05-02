@@ -1,6 +1,6 @@
 .main {
     min-height: 100vh;
-    padding: 10rem 0;
+    padding: clamp(6rem, 10vw, 10rem) 0;
     background-color: var(--color-white);
 }
 
@@ -12,7 +12,7 @@
 
 .title {
     font-family: var(--font-heading);
-    font-size: 4rem;
+    font-size: clamp(2.5rem, 8vw, 4rem);
     margin-bottom: 1rem;
     text-align: center;
 }
@@ -40,7 +40,7 @@
 
 .form {
     background: #fdfdfd;
-    padding: 4rem;
+    padding: clamp(2rem, 5vw, 4rem);
     border-radius: var(--radius-sm);
     border: 1px solid #f0f0f0;
 }
@@ -90,7 +90,7 @@
 .card {
     background: var(--color-black);
     color: white;
-    padding: 4rem;
+    padding: clamp(2rem, 5vw, 4rem);
     border-radius: var(--radius-sm);
     height: fit-content;
 }
@@ -129,11 +129,7 @@
 }
 
 @media (max-width: 600px) {
-    .form {
-        padding: 2rem;
-    }
-
-    .card {
-        padding: 2rem;
+    .row {
+        grid-template-columns: 1fr;
     }
 }

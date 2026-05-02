@@ -4,6 +4,7 @@
 }
 
 .header {
+    min-height: 60vh;
     height: 70vh;
     background-size: cover;
     background-position: center;
@@ -62,7 +63,7 @@
 
 .title {
     font-family: var(--font-heading);
-    font-size: 4.5rem;
+    font-size: clamp(2.5rem, 8vw, 4.5rem);
     line-height: 1.1;
     margin-bottom: 2rem;
     max-width: 800px;
@@ -92,7 +93,7 @@
 }
 
 .excerpt {
-    font-size: 1.5rem;
+    font-size: clamp(1.2rem, 4vw, 1.5rem);
     color: #444;
     line-height: 1.6;
     margin-bottom: 4rem;
@@ -164,16 +165,9 @@
 }
 
 @media (max-width: 768px) {
-    .title {
-        font-size: 2.5rem;
-    }
-
     .header {
-        height: 60vh;
+        height: auto;
         padding-bottom: 3rem;
-    }
-
-    .excerpt {
-        font-size: 1.25rem;
+        padding-top: 6rem;
     }
 }
